@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Github profiles project</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <!-- PRODUCTION -->
+    <!-- <script src="https://npmcdn.com/react@15.3.1/dist/react.min.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.1/dist/react-dom.min.js"></script> -->
+
+    <!-- DEVELOPMENT -->
+    <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.25/browser.min.js"></script>
+
+    <style media="screen">
+      .label {
+        margin:1em;
+      }
+      .repoContainer {
+        width:40%;
+      }
+      .repoItem {
+        background:#f9f9f9;
+        border: #f4f4f4 1px solid;
+        padding:10px 10px;
+        border-radius:10px;
+        margin-bottom: 10px;
+      }
+
+      .form-control {
+        margin:10px;
+      }
+
+      form {
+        width:70%;
+        text-align: center;
+        margin-bottom:35px;
+        background: #f4f4f4;
+        padding: 20px 10px;
+        border-radius:5px;
+
+      }
+    </style>
+
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+      <h1>ReactJS: Github profiles project</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <p>
+          NOTE: You can see React Errors on console when there are type mismatch but using <strong>React Development library</strong> (uncompressed)
+        </p>
+        <p>
+          NOTE2: At the end of callback functions we put <strong>.bind(this)</strong> because if you ran your original code in without bind, you'd get this error:
+          TypeError: undefined is not a function because this === window in the callback;
+          <br/>
+          In this way it ensure's this will be the correct object inside the callback. See Function.prototype.bind().
+        </p>
+      <section>
+        <h2>Output</h2>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Source code</h2>
+
+        <div class="sample">
+           <xmp class="code">
+
+             <style media="screen">
+               .label {
+                 margin:1em;
+               }
+               .repoContainer {
+                 width:40%;
+               }
+               .repoItem {
+                 background:#f9f9f9;
+                 border: #f4f4f4 1px solid;
+                 padding:10px 10px;
+                 border-radius:10px;
+                 margin-bottom: 10px;
+               }
+
+               .form-control {
+                 margin:10px;
+               }
+
+               form {
+                 width:70%;
+                 text-align: center;
+                 margin-bottom:35px;
+                 background: #f4f4f4;
+                 padding: 20px 10px;
+                 border-radius:5px;
+
+               }
+             </style>
+
+             ....
+
+             var Profile = React.createClass({
+               handleFormSubmit : function(username) {
+                 this.setState({username:username} , function() {
+                   this.loadUserData();
+                   this.loadRepoData();
+                 });
+               },
+               getDefaultProps : function() {
+                 return {
+                   clientId:'397585715d9eb761ddc1',
+                   clientSecret:'058ca3e3853c98a7e012996703c79dd81ff2cedb',
+                   urls : {
+                     user: 'https://api.github.com/users'
+                   },
+                   perPage:5
+                 }
+
+               },
+               getInitialState: function() {
+                 return {
+                   username: null,
+                   userData: [],
+                   repoData: []
+                 }
+               },
+
+               loadUserData: function() {
+                 $.ajax({
+                   url:this.props.urls.user + '/' + this.state.username + '?client_id=' + this.props.clientId + '&client_secret='  + this.props.clientSecret,
+                   dtaType:'json',
+                   cache:false,
+                   success: function(data) {
+                     console.log(data);
+                     this.setState({userData: data});
+                   }.bind(this),
+                   error: function(xhr, status, err) {
+                     this.setState({userData:null});
+                     alert(err);
+
+                   }.bind(this),
+
+                 });
+
+               },
+
+               loadRepoData: function() {
+                 $.ajax({
+                   url:this.props.urls.user + '/' + this.state.username + '/repos?per_page='+this.props.perPage+'&client_id=' + this.props.clientId + '&client_secret='  + this.props.clientSecret + '&sort=created',
+                   dtaType:'json',
+                   cache:false,
+                   success: function(data) {
+                     //console.log(data);
+                     this.setState({repoData: data});
+                   }.bind(this),
+                   error: function(xhr, status, err) {
+                     this.setState({repoData:null});
+                     alert(err);
+
+                   }.bind(this),
+
+                 });
+               },
+
+
+               componentDidMount: function() {
+                 this.loadUserData();
+                 this.loadRepoData();
+               },
+
+               render : function() {
+                 return (
+                   <div>
+                     <SearchForm onFormSubmit={this.handleFormSubmit}/>
+                     {this.state.username ? <UserInfo userData={this.state.userData}/> : null}
+                     {this.state.username ? <Repos repoData={this.state.repoData}/> : null}
+                   </div>
+                 );
+               }
+             });
+
+             var UserInfo = React.createClass({
+
+               render : function() {
+                 return (
+                   <div>
+                     <div className="row">
+                       <div className="col-md-4">
+                         <img className="thumbnail" style={{width:"100%"}} src={this.props.userData.avatar_url} />
+                       </div>
+                       <div className="col-md-4">
+                           <h3>{this.props.userData.name}</h3>
+                           <a className="btn btn-primary" target="_blank" href={this.props.userData.html_url}>Visit Github page</a>
+                       </div>
+                     </div>
+
+                     <div className="row">
+                       <div className="col-md-8">
+                         <span className="label label-primary">{this.props.userData.public_repos} Repos</span>
+                         <span className="label label-success">{this.props.userData.public_gists} Gists</span>
+                         <span className="label label-info">{this.props.userData.followers} Followers</span>
+                         <span className="label label-danger">{this.props.userData.following} Following</span>
+                       </div>
+                     </div>
+                     <br/>
+                     <div className="row">
+                       <div className="col-md-8">
+                         <ul className="list-group">
+                           <li className="list-group-item"><strong>Username: </strong> {this.props.userData.login}</li>
+                           <li className="list-group-item"><strong>Location: </strong> {this.props.userData.location}</li>
+                           <li className="list-group-item"><strong>Email: </strong> {this.props.userData.email}</li>
+
+                         </ul>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               }
+             });
+
+             var Repos = React.createClass({
+               render : function() {
+                 console.log(this.props.repoData);
+                 var repoNodes = this.props.repoData.map(function(repo , index) {
+                   return (
+                     <Repo name={repo.name} description={repo.description} url={repo.html_url} key={index} />
+                   );
+                 });
+                 return (
+                   <div className="repoContainer">
+                     <h2 className="page-header">Latest Repos</h2>
+                     {repoNodes}
+                   </div>
+                 );
+               }
+             });
+
+             var Repo = React.createClass({
+               render : function() {
+                 return (
+                   <div className="repoItem">
+                     <h4><a target="_blank" href={this.props.url}>{this.props.name}</a></h4>
+                     <p>{this.props.description}</p>
+                   </div>
+                 );
+               }
+             });
+
+
+             var SearchForm = React.createClass({
+               submitForm: function(e) {
+                 e.preventDefault();
+                 var username = this.refs.username.value.trim();
+                 if(!username) {
+                   alert('Please Enter User');
+                   return;
+                 }
+                 this.props.onFormSubmit(username);
+                 this.refs.username.value = '';
+               },
+               render : function() {
+                 return (
+                   <form onSubmit={this.submitForm} className="form-inline">
+                     <div className="form-group">
+                       <input type="text" ref="username" className="form-control searchInput" placeholder="Enter Github user name"/>
+                     </div>
+                     <button type="submit" className="btn btn-primary">Submit</button>
+                   </form>
+                 );
+               }
+             });
+
+
+
+
+               ReactDOM.render(
+                 <Profile />,
+                 document.getElementById('container')
+               );
+
+           </xmp>
+       </div>
+     </section>
+   </main>
+
+    <script type="text/babel">
+    "use strict";
+
+    var Profile = React.createClass({
+      handleFormSubmit : function(username) {
+        this.setState({username:username} , function() {
+          this.loadUserData();
+          this.loadRepoData();
+        });
+      },
+      getDefaultProps : function() {
+        return {
+          clientId:'397585715d9eb761ddc1',
+          clientSecret:'058ca3e3853c98a7e012996703c79dd81ff2cedb',
+          urls : {
+            user: 'https://api.github.com/users'
+          },
+          perPage:5
+        }
+
+      },
+      getInitialState: function() {
+        return {
+          username: null,
+          userData: [],
+          repoData: []
+        }
+      },
+
+      loadUserData: function() {
+        $.ajax({
+          url:this.props.urls.user + '/' + this.state.username + '?client_id=' + this.props.clientId + '&client_secret='  + this.props.clientSecret,
+          dtaType:'json',
+          cache:false,
+          success: function(data) {
+            console.log(data);
+            this.setState({userData: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            this.setState({userData:null});
+            alert(err);
+
+          }.bind(this),
+
+        });
+
+      },
+
+      loadRepoData: function() {
+        $.ajax({
+          url:this.props.urls.user + '/' + this.state.username + '/repos?per_page='+this.props.perPage+'&client_id=' + this.props.clientId + '&client_secret='  + this.props.clientSecret + '&sort=created',
+          dtaType:'json',
+          cache:false,
+          success: function(data) {
+            //console.log(data);
+            this.setState({repoData: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            this.setState({repoData:null});
+            alert(err);
+
+          }.bind(this),
+
+        });
+      },
+
+
+      componentDidMount: function() {
+        this.loadUserData();
+        this.loadRepoData();
+      },
+
+      render : function() {
+        return (
+          <div>
+            <SearchForm onFormSubmit={this.handleFormSubmit}/>
+            {this.state.username ? <UserInfo userData={this.state.userData}/> : null}
+            {this.state.username ? <Repos repoData={this.state.repoData}/> : null}
+          </div>
+        );
+      }
+    });
+
+    var UserInfo = React.createClass({
+
+      render : function() {
+        return (
+          <div>
+            <div className="row">
+              <div className="col-md-4">
+                <img className="thumbnail" style={{width:"100%"}} src={this.props.userData.avatar_url} />
+              </div>
+              <div className="col-md-4">
+                  <h3>{this.props.userData.name}</h3>
+                  <a className="btn btn-primary" target="_blank" href={this.props.userData.html_url}>Visit Github page</a>
+              </div>
+            </div>
+
+            <div className="row">
+              <div className="col-md-8">
+                <span className="label label-primary">{this.props.userData.public_repos} Repos</span>
+                <span className="label label-success">{this.props.userData.public_gists} Gists</span>
+                <span className="label label-info">{this.props.userData.followers} Followers</span>
+                <span className="label label-danger">{this.props.userData.following} Following</span>
+              </div>
+            </div>
+            <br/>
+            <div className="row">
+              <div className="col-md-8">
+                <ul className="list-group">
+                  <li className="list-group-item"><strong>Username: </strong> {this.props.userData.login}</li>
+                  <li className="list-group-item"><strong>Location: </strong> {this.props.userData.location}</li>
+                  <li className="list-group-item"><strong>Email: </strong> {this.props.userData.email}</li>
+
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    });
+
+    var Repos = React.createClass({
+      render : function() {
+        console.log(this.props.repoData);
+        var repoNodes = this.props.repoData.map(function(repo , index) {
+          return (
+            <Repo name={repo.name} description={repo.description} url={repo.html_url} key={index} />
+          );
+        });
+        return (
+          <div className="repoContainer">
+            <h2 className="page-header">Latest Repos</h2>
+            {repoNodes}
+          </div>
+        );
+      }
+    });
+
+    var Repo = React.createClass({
+      render : function() {
+        return (
+          <div className="repoItem">
+            <h4><a target="_blank" href={this.props.url}>{this.props.name}</a></h4>
+            <p>{this.props.description}</p>
+          </div>
+        );
+      }
+    });
+
+
+    var SearchForm = React.createClass({
+      submitForm: function(e) {
+        e.preventDefault();
+        var username = this.refs.username.value.trim();
+        if(!username) {
+          alert('Please Enter User');
+          return;
+        }
+        this.props.onFormSubmit(username);
+        this.refs.username.value = '';
+      },
+      render : function() {
+        return (
+          <form onSubmit={this.submitForm} className="form-inline">
+            <div className="form-group">
+              <input type="text" ref="username" className="form-control searchInput" placeholder="Enter Github user name"/>
+            </div>
+            <button type="submit" className="btn btn-primary">Submit</button>
+          </form>
+        );
+      }
+    });
+
+
+
+
+      ReactDOM.render(
+        <Profile />,
+        document.getElementById('container')
+      );
+
+    </script>
+
+</body>
+</html>

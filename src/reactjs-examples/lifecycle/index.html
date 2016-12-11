@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Lifecycle</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <script src="https://npmcdn.com/react@15.3.1/dist/react.min.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.1/dist/react-dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.25/browser.min.js"></script>
+
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+      <h1>Lifecycle</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Output</h2>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <div id="container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Source code</h2>
+
+        <div class="sample">
+           <xmp class="code">
+
+             <div id="container"></div>
+
+...
+
+             var MyComponent = React.createClass( {
+               getDefaultProps : function() {
+                 console.log('Invoking getDefaultProps method');
+                 return {
+                   myProp: "Foobar222",
+                   log:""
+                 };
+               },
+
+               getInitialState : function() {
+                 console.log('Invoking getInitialState method');
+                 return null;
+               },
+
+               componentWillMount : function() {
+                 console.log('Invoking componentWillMount method');
+
+               },
+               componentDidMount : function() {
+                 console.log('Invoking componentDidMount method');
+
+               },
+
+               render: function() {
+                 console.log('Invoking render method');
+                 var divStyle = {fontSize:'0.8em'};
+
+                 return (
+                   <div>
+                     <h3>{this.props.myProp}</h3>
+                     <p></p>
+                     <button onClick={this.changeProp}>Change property</button>
+                     <button onClick={this.removeHandler}>Unmount</button>
+                     <hr/>
+                     <strong>Log</strong>
+                     <div style={divStyle} dangerouslySetInnerHTML={{__html: this.props.log}}></div>
+                   </div>
+                 )
+
+               },
+
+               componentWillReceiveProps : function() {
+                 this.props.log = this.props.log + '<br>Invoking componentWillReceiveProps method';
+                 console.log('Invoking componentWillReceiveProps method');
+               },
+               shouldComponentUpdate : function() {
+                 console.log('Invoking shouldComponentUpdate method');
+                 this.props.log = this.props.log + ' <br> Invoking shouldComponentUpdate method';
+
+                 return true;
+               },
+               componentWillUpdate : function() {
+                 console.log('Invoking componentWillUpdate method');
+                 this.props.log = this.props.log + ' <br> Invoking componentWillReceiveProps method';
+
+               },
+               componentDidUpdate : function() {
+                 console.log('Invoking componentDidUpdate method');
+                 this.props.log = this.props.log + ' <br> Invoking componentDidUpdate method';
+
+
+               },
+               componentWillUnmount : function() {
+                 console.log('Invoking componentWillUnmount method');
+                 this.props.log = this.props.log + ' <br> Invoking componentWillUnmount method';
+
+               },
+
+               changeProp : function() {
+                 this.props.myProp= "Bar";
+                 console.log("props" , this.props);
+                 console.log("log" , this.log);
+
+                 //NOTE: this.setProps is deprecated
+                 this.forceUpdate();
+               },
+
+               removeHandler: function() {
+                 ReactDOM.unmountComponentAtNode(document.getElementById('container'));
+               }
+
+             });
+
+             ReactDOM.render(
+               <MyComponent />,
+               document.getElementById('container')
+             );
+           </xmp>
+       </div>
+     </section>
+   </main>
+
+    <script type="text/babel">
+      var MyComponent = React.createClass( {
+        getDefaultProps : function() {
+          console.log('Invoking getDefaultProps method');
+          return {
+            myProp: "Foobar222",
+            log:""
+          };
+        },
+
+        getInitialState : function() {
+          console.log('Invoking getInitialState method');
+          return null;
+        },
+
+        componentWillMount : function() {
+          console.log('Invoking componentWillMount method');
+
+        },
+        componentDidMount : function() {
+          console.log('Invoking componentDidMount method');
+
+        },
+
+        render: function() {
+          console.log('Invoking render method');
+          var divStyle = {fontSize:'0.8em'};
+
+          return (
+            <div>
+              <h3>{this.props.myProp}</h3>
+              <p></p>
+              <button onClick={this.changeProp}>Change property</button>
+              <button onClick={this.removeHandler}>Unmount</button>
+              <hr/>
+              <strong>Log</strong>
+              <div style={divStyle} dangerouslySetInnerHTML={{__html: this.props.log}}></div>
+            </div>
+          )
+
+        },
+
+        componentWillReceiveProps : function() {
+          this.props.log = this.props.log + '<br>Invoking componentWillReceiveProps method';
+          console.log('Invoking componentWillReceiveProps method');
+        },
+        shouldComponentUpdate : function() {
+          console.log('Invoking shouldComponentUpdate method');
+          this.props.log = this.props.log + ' <br> Invoking shouldComponentUpdate method';
+
+          return true;
+        },
+        componentWillUpdate : function() {
+          console.log('Invoking componentWillUpdate method');
+          this.props.log = this.props.log + ' <br> Invoking componentWillReceiveProps method';
+
+        },
+        componentDidUpdate : function() {
+          console.log('Invoking componentDidUpdate method');
+          this.props.log = this.props.log + ' <br> Invoking componentDidUpdate method';
+
+
+        },
+        componentWillUnmount : function() {
+          console.log('Invoking componentWillUnmount method');
+          this.props.log = this.props.log + ' <br> Invoking componentWillUnmount method';
+
+        },
+
+        changeProp : function() {
+          this.props.myProp= "Bar";
+          console.log("props" , this.props);
+          console.log("log" , this.log);
+
+          //NOTE: this.setProps is deprecated
+          this.forceUpdate();
+        },
+
+        removeHandler: function() {
+          ReactDOM.unmountComponentAtNode(document.getElementById('container'));
+        }
+
+      });
+
+      ReactDOM.render(
+        <MyComponent />,
+        document.getElementById('container')
+      );
+
+    </script>
+
+</body>
+</html>

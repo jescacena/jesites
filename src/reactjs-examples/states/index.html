@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Working with states</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <!-- PRODUCTION -->
+    <!-- <script src="https://npmcdn.com/react@15.3.1/dist/react.min.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.1/dist/react-dom.min.js"></script> -->
+
+    <!-- DEVELOPMENT -->
+    <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.25/browser.min.js"></script>
+
+    <style media="screen">
+      ul.nav {
+        padding:10px;
+        margin:10px 0 0 0;
+        background: #f4f4f4;
+        font-size:1.2em;
+      }
+
+      ul.nav li {
+        float:left;
+        cursor:pointer;
+        padding: 0 20px 0 0;
+        margin:0;
+        list-style: none;
+      }
+
+      h1 {
+        margin-top: 30px;
+      }
+
+    </style>
+
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+      <h1>Working with states - Navigation example</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <p>
+          NOTE: You can see React Errors on console when there are type mismatch but using React Development library (uncompressed)
+        </p>
+      <section>
+        <h2>Output</h2>
+        <div class="container">
+
+          <div class="row">
+            <div class="col-md-12">
+              <div id="container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Source code</h2>
+
+        <div class="sample">
+           <xmp class="code">
+
+             <!-- DEVELOPMENT -->
+             <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+             <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+...
+
+"use strict";
+  var Nav = React.createClass( {
+
+    getInitialState: function() {
+      return {
+        current: 0
+      }
+    },
+
+    clicked : function(index) {
+      this.setState({current: index});
+    },
+
+    render : function() {
+      "use strict";
+      var self=this;
+      if(self.state.current == 0) {
+        var content = 'Welcome to the homepage';
+      } else if(self.state.current == 1) {
+        var content = 'About page';
+      } else if(self.state.current == 2) {
+        var content = 'Services page';
+      } else if(self.state.current == 3) {
+        var content = 'Contact page';
+      }
+      return (
+        <div>
+        <p><small>Click on option and see how to change the slected one:</small></p>
+          <ul className="nav">{this.props.menuItems.map(function(m,index) {
+            var style = '';
+            if(self.state.current == index) {
+              style= 'current';
+            }
+
+            return <li className={style} onClick={self.clicked.bind(self , index)}>{m}</li>
+          })}
+
+          </ul>
+          <hr/>
+          <p>Option selected : <strong>{this.props.menuItems[this.state.current]}</strong></p>
+          <p>{content}</p>
+          <hr/>
+
+        </div>
+      )
+    }
+  });
+
+  ReactDOM.render(
+    <Nav menuItems={['Home', 'About', 'Services' , 'Contact']}/>,
+    document.getElementById('container')
+  );
+
+           </xmp>
+       </div>
+     </section>
+   </main>
+
+    <script type="text/babel">
+    "use strict";
+      var Nav = React.createClass( {
+
+        getInitialState: function() {
+          return {
+            current: 0
+          }
+        },
+
+        clicked : function(index) {
+          this.setState({current: index});
+        },
+
+        render : function() {
+          "use strict";
+          var self=this;
+          if(self.state.current == 0) {
+            var content = 'Welcome to the homepage';
+          } else if(self.state.current == 1) {
+            var content = 'About page';
+          } else if(self.state.current == 2) {
+            var content = 'Services page';
+          } else if(self.state.current == 3) {
+            var content = 'Contact page';
+          }
+          return (
+            <div>
+            <p><small>Click on option and see how to change the slected one:</small></p>
+              <ul className="nav">{this.props.menuItems.map(function(m,index) {
+                var style = '';
+                if(self.state.current == index) {
+                  style= 'current';
+                }
+
+                return <li className={style} onClick={self.clicked.bind(self , index)}>{m}</li>
+              })}
+
+              </ul>
+              <hr/>
+              <p>Option selected : <strong>{this.props.menuItems[this.state.current]}</strong></p>
+              <p>{content}</p>
+              <hr/>
+
+            </div>
+          )
+        }
+      });
+
+      ReactDOM.render(
+        <Nav menuItems={['Home', 'About', 'Services' , 'Contact']}/>,
+        document.getElementById('container')
+      );
+
+    </script>
+
+</body>
+</html>

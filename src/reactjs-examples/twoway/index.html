@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Working with data - Products</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+    <!-- PRODUCTION -->
+    <!-- <script src="https://npmcdn.com/react@15.3.1/dist/react.min.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.1/dist/react-dom.min.js"></script> -->
+
+    <!-- DEVELOPMENT -->
+    <!-- NOTE: You can see React Errors on console when there are type mismatch but using React Development library (uncompressed) -->
+
+    <!-- <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script> -->
+    <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+    <script src="https://unpkg.com/react@15.3.1/dist/react-with-addons.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.25/browser.min.js"></script>
+
+    <style media="screen">
+    </style>
+
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+      <h1>React addons - ReactLink - 2 Way data binding example</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <p>
+          We will do a input box with ReactLink to link it to a state of the react component
+        </p>
+
+        <p>
+          Update: ReactLink is deprecated:
+          <a href="https://facebook.github.io/react/docs/two-way-binding-helpers.html">https://facebook.github.io/react/docs/two-way-binding-helpers.html</a>
+        </p>
+
+      </section>
+      <section>
+        <h2>Output</h2>
+        <div class="container">
+
+          <div class="row">
+            <div class="col-md-8">
+              <div id="container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Source code</h2>
+
+        <div class="sample">
+           <xmp class="code">
+
+             <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+             <script src="https://unpkg.com/react@15.3.1/dist/react-with-addons.js"></script>
+             <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+             ...
+
+             var MyComponent = React.createClass({
+               mixins: [React.addons.LinkedStateMixin],
+               getInitialState: function() {
+                 return {
+                   value: 'Some Value'
+                 }
+               },
+
+               render: function() {
+                 return (
+                   <div>
+                     <h4>{this.state.value}</h4>
+                     <p></p>
+                     <MyInput valueLink={this.linkState('value')}/>
+                   </div>
+                 )
+               }
+             });
+
+
+             var MyInput = React.createClass({
+               render: function() {
+                 return (
+                   <input type="text" valueLink={this.props.valueLink} />
+                 )
+               }
+
+             });
+
+             ReactDOM.render(
+               <MyComponent />,
+               document.getElementById('container')
+             );
+
+           </xmp>
+       </div>
+     </section>
+   </main>
+
+    <script type="text/babel">
+      "use strict";
+
+      var MyComponent = React.createClass({
+        mixins: [React.addons.LinkedStateMixin],
+        getInitialState: function() {
+          return {
+            value: 'Some Value'
+          }
+        },
+
+        render: function() {
+          return (
+            <div>
+              <h4>{this.state.value}</h4>
+              <p></p>
+              <MyInput valueLink={this.linkState('value')}/>
+            </div>
+          )
+        }
+      });
+
+
+      var MyInput = React.createClass({
+        render: function() {
+          return (
+            <input type="text" valueLink={this.props.valueLink} />
+          )
+        }
+
+      });
+
+      ReactDOM.render(
+        <MyComponent />,
+        document.getElementById('container')
+      );
+
+
+    </script>
+
+</body>
+</html>

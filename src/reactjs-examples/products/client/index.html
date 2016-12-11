@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Working with data - Products</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- PRODUCTION -->
+    <!-- <script src="https://npmcdn.com/react@15.3.1/dist/react.min.js"></script>
+    <script src="https://npmcdn.com/react-dom@15.3.1/dist/react-dom.min.js"></script> -->
+
+    <!-- DEVELOPMENT -->
+    <!-- NOTE: You can see React Errors on console when there are type mismatch but using React Development library (uncompressed) -->
+
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.25/browser.min.js"></script>
+
+    <style media="screen">
+      body {
+        margin-top:40px;
+      }
+    </style>
+
+
+  </head>
+  <body>
+
+    <header>
+      <img src="img/logo-reactjs.png" width="200">
+      <h1>Working with data - Products</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <p>
+          NOTE: This example runs with a node/express server serving an API to create / list products
+        </p>
+        <p>
+          Both client and side code in the same port avoid CORS problems
+        </p>
+      </section>
+      <section>
+        <h2>Output</h2>
+        <div class="container">
+
+          <div class="row">
+            <div class="col-md-8">
+              <div id="container"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Source code</h2>
+
+        <div class="sample">
+           <xmp class="code">
+
+             <!-- DEVELOPMENT -->
+             <script src="https://unpkg.com/react@15.3.1/dist/react.js"></script>
+             <script src="https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+
+             <script type="text/babel">
+             "use strict";
+
+             var Products = React.createClass({
+
+               handleProductSubmit: function(product) {
+                 var products = this.state.productData;
+                 var newProducts = products.concat([product]);
+
+                 this.setState({productData: newProducts});
+
+                 $.ajax({
+                   url: this.state.url,
+                   dataType:'json',
+                   type: 'POST',
+                   data: product,
+                   success: function(response) {
+                     console.log("JES", response);
+                   },
+                   error: function() {}
+                 });
+               },
+
+               loadProductData : function() {
+                 $.ajax({
+                   url:this.state.url,
+                   dataType:'json',
+                   cache: false,
+                   success: function(data) {
+                     console.log(data);
+                     this.setState({productData:data});
+                   }.bind(this),
+                   error: function(xhr , status, err) {
+                     console.log(err);
+                   }.bind(this)
+                 });
+               },
+               getDefaultProps : function() {
+                 return {
+                   //We want to refresh automatically product list every 2 seconds
+                   interval:2000
+
+                 }
+               },
+               getInitialState : function() {
+                 return {
+                   productData : [],
+                   url: '/api/products'
+                 };
+               },
+               componentDidMount : function() {
+                 this.loadProductData();
+               },
+               render : function() {
+                 return (
+                   <div>
+                     <div className="row">
+                       <div className="col-md-6">
+                         <ProductForm onProductSubmit={this.handleProductSubmit}/>
+                       </div>
+                       <div className="col-md-6">
+                       <ProductList productData={this.state.productData}/>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               }
+             });
+             var ProductForm = React.createClass({
+               handleSubmit : function(e) {
+                 e.preventDefault();
+                 var product = {
+                   id: this.refs.id.value.trim(),
+                   name: this.refs.name.value.trim(),
+                   description: this.refs.description.value.trim(),
+                   price: this.refs.price.value.trim()
+                 };
+
+                 if(!product.id || !product.name){
+                   alert("Please fill in id and name");
+                   return;
+                 }
+
+                 this.props.onProductSubmit(product);
+
+                 this.refs.id.value='';
+                 this.refs.name.value='';
+                 this.refs.description.value='';
+                 this.refs.price.value='';
+               },
+               render : function() {
+                 return (
+                   <div>
+                     <h3>Add Product</h3>
+                     <form onSubmit={this.handleSubmit}>
+                       <div className="form-group">
+                         <label>Product ID</label>
+                         <input type="text" className="form-control" placeholder="Enter ID" ref="id"/>
+                       </div>
+                       <div className="form-group">
+                         <label>Product Name</label>
+                         <input type="text" className="form-control" placeholder="Enter name" ref="name"/>
+                       </div>
+                       <div className="form-group">
+                         <label>DEscription</label>
+                         <textarea className="form-control" placeholder="Enter description" ref="description"></textarea>
+                       </div>
+                       <div className="form-group">
+                         <label>Price</label>
+                         <input type="text" className="form-control" placeholder="Enter Price" ref="price"/>
+                       </div>
+                       <button type="Submit">Submit</button>
+                     </form>
+                   </div>
+                 );
+               }
+             });
+             var ProductList = React.createClass({
+               render : function() {
+                 var productNodes = this.props.productData.map(function(product , index) {
+                   var productFields = {
+                     id:product.id,
+                     name:product.name,
+                     description:product.description,
+                     price:product.price,
+                     buy_url:product.buy_url,
+                     image_url:product.image_url
+                   };
+                   return (
+                     <Product productFields = {productFields}/>
+                   )
+
+                 });
+                 return (
+                   <div>
+                     {productNodes}
+                   </div>
+                 );
+               }
+             });
+
+             var Product = React.createClass({
+               render : function() {
+                 return (
+                   <div className="well product">
+                     <div className="row">
+                       <div className="col-md-2">
+                         <img style={{width:"100%"}} src={this.props.productFields.image_url} />
+                       </div>
+                       <div className="col-md-2">
+                         <h3>{this.props.productFields.name}</h3>
+                         <p>{this.props.productFields.description}</p>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               }
+             });
+
+             ReactDOM.render(
+               <Products/>,
+               document.getElementById('container')
+             );
+
+             </script>
+
+
+           </xmp>
+       </div>
+     </section>
+   </main>
+
+    <script type="text/babel">
+    "use strict";
+
+    var Products = React.createClass({
+
+      handleProductSubmit: function(product) {
+        var products = this.state.productData;
+        var newProducts = products.concat([product]);
+
+        this.setState({productData: newProducts});
+
+        $.ajax({
+          url: this.state.url,
+          dataType:'json',
+          type: 'POST',
+          data: product,
+          success: function(response) {
+            console.log("JES", response);
+          },
+          error: function() {}
+        });
+      },
+
+      loadProductData : function() {
+        $.ajax({
+          url:this.state.url,
+          dataType:'json',
+          cache: false,
+          success: function(data) {
+            console.log(data);
+            this.setState({productData:data});
+          }.bind(this),
+          error: function(xhr , status, err) {
+            console.log(err);
+          }.bind(this)
+        });
+      },
+      getDefaultProps : function() {
+        return {
+          //We want to refresh automatically product list every 2 seconds
+          interval:2000
+
+        }
+      },
+      getInitialState : function() {
+        return {
+          productData : [],
+          url: '/api/products'
+        };
+      },
+      componentDidMount : function() {
+        this.loadProductData();
+      },
+      render : function() {
+        return (
+          <div>
+            <div className="row">
+              <div className="col-md-6">
+                <ProductForm onProductSubmit={this.handleProductSubmit}/>
+              </div>
+              <div className="col-md-6">
+              <ProductList productData={this.state.productData}/>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    });
+    var ProductForm = React.createClass({
+      handleSubmit : function(e) {
+        e.preventDefault();
+        var product = {
+          id: this.refs.id.value.trim(),
+          name: this.refs.name.value.trim(),
+          description: this.refs.description.value.trim(),
+          price: this.refs.price.value.trim()
+        };
+
+        if(!product.id || !product.name){
+          alert("Please fill in id and name");
+          return;
+        }
+
+        this.props.onProductSubmit(product);
+
+        this.refs.id.value='';
+        this.refs.name.value='';
+        this.refs.description.value='';
+        this.refs.price.value='';
+      },
+      render : function() {
+        return (
+          <div>
+            <h3>Add Product</h3>
+            <form onSubmit={this.handleSubmit}>
+              <div className="form-group">
+                <label>Product ID</label>
+                <input type="text" className="form-control" placeholder="Enter ID" ref="id"/>
+              </div>
+              <div className="form-group">
+                <label>Product Name</label>
+                <input type="text" className="form-control" placeholder="Enter name" ref="name"/>
+              </div>
+              <div className="form-group">
+                <label>DEscription</label>
+                <textarea className="form-control" placeholder="Enter description" ref="description"></textarea>
+              </div>
+              <div className="form-group">
+                <label>Price</label>
+                <input type="text" className="form-control" placeholder="Enter Price" ref="price"/>
+              </div>
+              <button type="Submit">Submit</button>
+            </form>
+          </div>
+        );
+      }
+    });
+    var ProductList = React.createClass({
+      render : function() {
+        var productNodes = this.props.productData.map(function(product , index) {
+          var productFields = {
+            id:product.id,
+            name:product.name,
+            description:product.description,
+            price:product.price,
+            buy_url:product.buy_url,
+            image_url:product.image_url
+          };
+          return (
+            <Product productFields = {productFields}/>
+          )
+
+        });
+        return (
+          <div>
+            {productNodes}
+          </div>
+        );
+      }
+    });
+
+    var Product = React.createClass({
+      render : function() {
+        return (
+          <div className="well product">
+            <div className="row">
+              <div className="col-md-4">
+                <img style={{width:"100%"}} src={this.props.productFields.image_url} />
+              </div>
+              <div className="col-md-8">
+                <h3>{this.props.productFields.name}</h3>
+                <p>{this.props.productFields.description}</p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    });
+
+    ReactDOM.render(
+      <Products/>,
+      document.getElementById('container')
+    );
+
+    </script>
+
+</body>
+</html>

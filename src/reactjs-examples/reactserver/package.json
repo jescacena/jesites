@@ -1,0 +1,23 @@
+{
+  "name": "reactserver",
+  "version": "1.0.0",
+  "description": "Simple web server",
+  "dependencies": {
+    "babel": "*",
+    "babel-core": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "body-parser": "*",
+    "express": "*",
+    "express-handlebars": "*",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Bruto Mecanico",
+  "license": "ISC"
+}
