@@ -2,5 +2,12 @@
   "title": "Leaflet Tutorial",
   "description" : "Leallet Tutorial",
   "tags": "web mapping , leaflet",
-  "links": ["http://leafletjs.com/examples.html"]
+  "links": [
+    {
+      "url":"http://leafletjs.com/examples.html",
+      "label": "LeafletJS examples"
+      }
+  ],
+  "lastUpdateTimestamp":1451606400
+
 }

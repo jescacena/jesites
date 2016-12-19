@@ -1,6 +1,6 @@
 # JESITES
 
-## JES HTML & CSS Practice examples repository
+## JES FrontEnd Practice examples repository
 * [Live catalog](http://jesidea.com/jesites)
 
 ## GULP tags

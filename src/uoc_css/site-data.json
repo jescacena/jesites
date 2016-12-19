@@ -2,5 +2,10 @@
   "title": "UOC: Posicionamiento estático y relativo con CSS",
   "description" : "UOC: Posicionamiento estático y relativo  con CSS",
   "tags": "CSS",
-  "links": ["http://mosaic.uoc.edu/ac/le/es/m6/ud10/index.html"]
+  "links": [{
+    "url":"http://mosaic.uoc.edu/ac/le/es/m6/ud10/index.html",
+    "label":"Curso CSS de la UOC"
+    }],
+  "lastUpdateTimestamp":1451606400
+
 }

@@ -2,5 +2,11 @@
   "title": "UDEMY : Projects in HTML5",
   "description" : "Example using Canvas in HTML5",
   "tags": "HTML5",
-  "links": []
+  "links": [
+    {
+      "url":"https://developer.mozilla.org/es/docs/Web/Guide/HTML/Canvas_tutorial",
+      "label":"Tutorial Canvas MDN"
+    }
+  ],
+  "lastUpdateTimestamp":1451606400
 }
