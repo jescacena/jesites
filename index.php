@@ -9,7 +9,7 @@
 <body>
 
   <header>
-    <h1>JESamples</h1>
+    <h1>JESITES</h1>
   </header>
 
   <div class="container">
@@ -23,6 +23,7 @@
     </nav>
 
     <main>
+      <h1 class="head-title">Head title</h1>
       <div class="sitelist">
       </div>
     </main>

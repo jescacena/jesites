@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Git and Heroku tools: Weather App</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>Git and Heroku tools: Weather App</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Index</h2>
+        <p><a href="#ssh">How to add a ssh key to get access to your Github account</a></p>
+        <p><a href="#github">How to add your git project to Github</a></p>
+        <p><a href="#heroku">How to add our project to Heroku</a></p>
+        <p><a href="#fixing">Fixing localhost</a></p>
+      </section>
+
+      <section>
+        <a name="ssh"></a>
+        <h2>How to add a ssh key to get access to your Github account</h2>
+        <p>Before start you need to get an account in Github</p>
+        <p>1. Open a terminal and runs this command:</p>
+        <div class="sample">
+           <xmp class="code">
+             ssh-keygen -t rsa -b 4096 -C 'youremail@yourdomain.com'
+            </xmp>
+        </div>
+        <p>and answer all the passwords you are ask for</p>
+        <p>2: check ssh-agent is running</p>
+        <div class="sample">
+           <xmp class="code">
+             eval "($(ssh-agent -s))"
+            </xmp>
+        </div>
+        <p>if you get a line with a valid pid thats ok</p>
+        <p>3: Check you ssh files have been generated in your platform. Runs this command:</p>
+        <div class="sample">
+           <xmp class="code">
+             ls -al ~/.ssh
+            </xmp>
+        </div>
+        <p>you will have to see two news files added: id_rsa and id_rso.pub. The pub file contains your public key. The other is your private key you should give to none.</p>
+
+        <p>4: Add your new identity to your ssh agent</p>
+        <div class="sample">
+           <xmp class="code">
+             ssh-add ~/.ssh/id_rsa
+            </xmp>
+        </div>
+
+        <p>5: Go to Github to add your public ssh key. First run this command to read the public ssh key: </p>
+        <div class="sample">
+           <xmp class="code">
+             mored ~/.ssh/id_rsa.pub
+            </xmp>
+        </div>
+        <p>copy the content into your github  SSH key page</p>
+
+        <p>6: Connect your SSH agent to github</p>
+        <div class="sample">
+           <xmp class="code">
+             ssh -T git@github.com
+            </xmp>
+        </div>
+
+        <p>Now you are successfully configured your SSH key to get access to your github repository.</p>
+
+      </section>
+
+      <section>
+        <a name="github"></a>
+        <h2>How to add your git project to Githubt</h2>
+        <p>Before start your project folder has to be with Git version control</p>
+        <p>1. Open a terminal and runs this command for add a remote to git:</p>
+        <div class="sample">
+           <xmp class="code">
+             git remote add origin git@github.com:jescacena/ReactWeather.git
+            </xmp>
+        </div>
+
+        <p>Conform it was successfully added running:</p>
+        <div class="sample">
+           <xmp class="code">
+             git remote -v
+            </xmp>
+        </div>
+
+        <p>Push your project to github</p>
+        <div class="sample">
+           <xmp class="code">
+             git push -u origin master
+            </xmp>
+        </div>
+
+        <p>When you modify any file you first need to commit your changes</p>
+        <div class="sample">
+           <xmp class="code">
+             git commit -am "My commit message"
+            </xmp>
+        </div>
+
+        <p></p>
+      </section>
+
+      <section>
+        <a name="heroku"></a>
+
+        <h2>How to add our project to Heroku</h2>
+
+        <p>Heroku is a cloud platform to get your project alive</p>
+        <p>First get an account in <a href="http://www.heroku.com" target="_blank">www.heroku.com</a></p>
+
+        <p>2. Get the Heroku toolbelt package. Go to <a href="http://toolbelt.heroku.com" target="_blank">toolbelt.heroku.com</a></p>
+        <p>Download and install the package for your proper operating system.</p>
+        <p>Now open a terminal and run:</p>
+        <div class="sample">
+           <xmp class="code">
+             heroku
+            </xmp>
+        </div>
+        <p>answer to your credentials</p>
+        <p>With help we can see all the options availables</p>
+        <div class="sample">
+           <xmp class="code">
+             heroku -h
+            </xmp>
+        </div>
+
+        <p>Check you are sucessfully logged in with this:</p>
+        <div class="sample">
+           <xmp class="code">
+             heroku auth:whoami
+            </xmp>
+        </div>
+
+        <p>3.Now we can deploy our app live to a Heroku url</p>
+
+        <p>First we need to tell Heroku <strong>how to start our app</strong>. For that , we need to specify into package.json script section:</p>
+        <div class="sample">
+           <xmp class="code">
+             scripts : {
+               "start": "node server.js"
+             }
+            </xmp>
+        </div>
+        <p>This also makes you can run your local server with:</p>
+        <div class="sample">
+           <xmp class="code">
+             npm start
+            </xmp>
+        </div>
+
+
+        <p>4.Second we need to modify server.js. By now we are using 3333 port to bind our server , but Heroku will tell us what port to use by environment variables.</p>
+        <p>We also need to redirect all https access to http access</p>
+        <div class="sample">
+           <xmp class="code">
+                 var express = require('express');
+
+                // Create our app
+                var app = express();
+                const PORT = process.env.PORT || 3000;
+
+                app.use(function (req, res, next){
+                  if (req.headers['x-forwarded-proto'] === 'http') {
+                    next();
+                  } else {
+                    res.redirect('http://' + req.hostname + req.url);
+                  }
+                });
+
+                app.use(express.static('public'));
+
+                app.listen(PORT, function () {
+                  console.log('Express server is up on port ' + PORT);
+                });
+              </xmp>
+          </div>
+
+          <p>Push your changes to github and now we are ready create a Heroku app</p>
+          <div class="sample">
+             <xmp class="code">
+               heroku create
+             </xmp>
+         </div>
+         <p>5.whith this it creates a Heroku app and also bind to our git repository.</p>
+         <p>It creates a new git remote for Heroku:</p>
+
+         <div class="sample">
+            <xmp class="code">
+              heroku  https://git.heroku.com/safe-bayou-11608.git (fetch)
+              heroku  https://git.heroku.com/safe-bayou-11608.git (push)
+              origin  git@github.com:jescacena/reactjs-weatherapp.git (fetch)
+              origin  git@github.com:jescacena/reactjs-weatherapp.git (push)
+            </xmp>
+        </div>
+
+        <p>6.Now we deploy our app with:</p>
+        <div class="sample">
+           <xmp class="code">
+              git push heroku master
+           </xmp>
+       </div>
+       <p>This will start a deployment process into Heroku , installing dependencies ,etc</p>
+
+       <p>7.To see our app live just run:</p>
+       <div class="sample">
+          <xmp class="code">
+             heroku open
+          </xmp>
+      </div>
+      <p>This will open a default browser window with the url of your app. <br>Something like: <a target="_blank" href="http://safe-bayou-11608.herokuapp.com/#/?_k=9mmtu6">http://safe-bayou-11608.herokuapp.com/#/?_k=9mmtu6</a></p>
+
+      </section>
+
+
+      <section>
+        <a name="fixing"></a>
+        <h2>Fixing localhost</h2>
+        <p>After configure our app to deploy to Heroku , localhost server ir not working</p>
+        <p>That is because in local server the http headers doesnt exist</p>
+        <p>So we need to change condition of middleware in server.js</p>
+        <div class="sample">
+           <xmp class="code">
+             app.use(function (req, res, next){
+               if (req.headers['x-forwarded-proto'] === 'https') {
+                 res.redirect('http://' + req.hostname + req.url);
+               } else {
+                 next();
+               }
+             });
+           </xmp>
+       </div>
+
+
+      </section>
+    </main>
+
+  </body>
+</html>

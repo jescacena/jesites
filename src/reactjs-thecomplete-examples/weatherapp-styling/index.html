@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Styling with Foundation: Weather App</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>Styling with Foundation: Weather App</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Index</h2>
+        <p><a href="#foundation">Setting up Foundation into the project</a></p>
+        <p><a href="#styling">Styling Navigation , About Page and Modal for Errors</a></p>
+        <p><a href="#sass">Setting up SASS into the project (Custom CSS)</a></p>
+        <p><a href="#linking">Linking to location and Wiring up Nav form</a></p>
+        <p><a href="#fixing">Fixing the error modal</a></p>
+
+
+        <a href="http://safe-bayou-11608.herokuapp.com/#/?_k=8vgc23" target="_blank">LIVE DEMO</a>
+        <br>
+        <a href="https://github.com/jescacena/reactjs-weatherapp" target="_blank">Github</a>
+      </section>
+
+      <section>
+        <a name="foundation"></a>
+        <h2>Setting up Foundation into the project</h2>
+        <p>Go to <a href="http://foundation.zurb.com" target="_blank">http://foundation.zurb.com</a> to see documentation</p>
+        <p>NPM packages required for Foundation, install them with:</p>
+        <div class="sample">
+           <xmp class="code">
+             npm install css-loader@0.23.1 script-loader@0.6.1 style-loader@0.13.0 jquery@2.2.1 foundation-sites@6.2.0 --save-dev
+            </xmp>
+        </div>
+        <p>
+          More info:
+          <br>
+          <a href="https://github.com/webpack/script-loader">https://github.com/webpack/script-loader (script!)</a>
+          <br>
+          <a href="https://webpack.github.io/docs/stylesheets.html">CSS loader (css!)</a>
+          <br>
+          <a href="https://github.com/webpack/style-loader">Style loader (style!)</a>
+
+        </p>
+
+        <p>We need to set up foundation and jquery modules into the <strong>webpack.config.js</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var webpack = require('webpack');
+
+             module.exports = {
+               entry: [
+                 'script!jquery/dist/jquery.min.js',
+                 'script!foundation-sites/dist/foundation.min.js',
+                 './app/app.jsx',
+               ],
+               externals: {
+                 'jquery':'jQuery',
+               },
+               plugins: [
+                 new webpack.ProvidePlugin({
+                   '$':'jquery',
+                   'jQuery':'jquery',
+                 })
+               ],
+               output: {
+                 path: __dirname,
+                 filename: './public/bundle.js'
+               },
+               resolve: {
+                 root: __dirname,
+                 alias: {
+                   Main: 'app/components/Main.jsx',
+                   Nav: 'app/components/Nav.jsx',
+                   Weather: 'app/components/Weather.jsx',
+                   WeatherForm: 'app/components/WeatherForm.jsx',
+                   WeatherMessage: 'app/components/WeatherMessage.jsx',
+                   About: 'app/components/About.jsx',
+                   Examples: 'app/components/Examples.jsx',
+                   openWeatherMap: 'app/api/openWeatherMap.jsx'
+                 },
+                 extensions: ['', '.js', '.jsx']
+               },
+               module: {
+                 loaders: [
+                   {
+                     loader: 'babel-loader',
+                     query: {
+                       presets: ['react', 'es2015', 'stage-0']
+                     },
+                     test: /\.jsx?$/,
+                     exclude: /(node_modules|bower_components)/
+                   }
+                 ]
+               },
+               devtool: 'cheap-module-eval-source-map'
+             };
+            </xmp>
+        </div>
+
+        <p><strong>script!</strong>=> execute file.js once in global context but not to include into the bundle</p>
+        <p><strong>externals</strong> allows you to specify dependencies for your library that are not resolved by webpack,
+          but become dependencies of the output. This means they are imported from the environment during runtime
+        </p>
+        <p>Finally we provide a <strong>plugin</strong> that enable us to use '$' symbol for use jQuery into our react components</p>
+
+        <p>We include foundation styles into main app file : <strong>app.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+            var React = require('react');
+            var ReactDOM = require('react-dom');
+            var {Route, Router, IndexRoute, hashHistory} = require('react-router');
+            var Main = require('Main');
+            var Weather = require('Weather');
+            var About = require('About');
+            var Examples = require('Examples');
+
+            //Load foundation CSS
+            require('style!css!foundation-sites/dist/foundation.min.css');
+            $(document).foundation();
+
+            ReactDOM.render(
+              <Router history={hashHistory}>
+                <Route path="/" component={Main}>
+                  <Route path="about" component={About}/>
+                  <Route path="examples" component={Examples}/>
+                  <IndexRoute component={Weather}/>
+                </Route>
+              </Router>,
+              document.getElementById('app')
+            );
+          </xmp>
+      </div>
+
+      <p><strong>Embedded stylesheets</strong>: By using style-loader and css-loader it’s possible to embed stylesheets into a
+        Webpack JavaScript bundle. This way you can <strong>modularize your stylesheets</strong> with your other modules,
+        so stylesheets are as easy as require("./stylesheet.css").</p>
+
+      </section>
+
+      <section>
+        <a name="styling"></a>
+        <h2>Styling Navigation , Pages and Modal for errors</h2>
+        <p>We are being using two Foundation navigational components: <a href="http://foundation.zurb.com/sites/docs/menu.html" target="_blank">Menu</a>
+          and <a href="http://foundation.zurb.com/sites/docs/top-bar.html" target="_blank">Top bar</a></p>
+        <p><strong>components/Nav.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+              var React = require('react');
+              var {Link, IndexLink} = require('react-router');
+
+              var Nav = React.createClass({
+                onSearch : function(e) {
+                  e.preventDefault();
+                  alert('Not yet wired up!');
+                },
+                render: function() {
+                  return (
+                    <div className="top-bar">
+
+                      <div className="top-bar-left">
+
+                        <ul className="menu">
+                          <li className="menuText">React Weather App</li>
+                          <li>
+                            <IndexLink to="/" activeClassName="active" activeStyle={{fontWeight: 'bold'}}>Get Weather</IndexLink>
+                          </li>
+                          <li>
+                            <Link to="/about" activeClassName="active"  activeStyle={{fontWeight: 'bold'}}>About</Link>
+                          </li>
+                          <li>
+                            <Link to="/examples" activeClassName="active" activeStyle={{fontWeight: 'bold'}}>Examples</Link>
+                          </li>
+                        </ul>
+
+
+                      </div>
+
+                      <div className="top-bar-right">
+                        <form onSubmit={this.onSearch}>
+                          <ul className="menu">
+                            <li>
+                              <input type="search" placeholder="Search weather"></input>
+                            </li>
+                            <li>
+                              <input type="submit" className="button" value="Get Weather"></input>
+                            </li>
+                          </ul>
+                        </form>
+                      </div>
+
+                    </div>
+                  );
+                }
+              });
+
+              module.exports = Nav;
+            </xmp>
+        </div>
+
+        <p>And we will be using <a href="http://foundation.zurb.com/sites/docs/grid.html">Grid Foundation component</a> for pages</p>
+        <p><strong>components/Main.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var Nav = require('Nav');
+
+             var Main = (props) => {
+               return (
+                 <div>
+                   <Nav/>
+                   <div className="row">
+                     <div className="columns medium-6 large-4 small-centered">
+                       {props.children}
+                     </div>
+                   </div>
+                 </div>
+               );
+             }
+
+             module.exports = Main;
+
+           </xmp>
+        </div>
+
+        <p><strong>components/Examples.jsx</strong></p>
+
+        <div class="sample">
+           <xmp class="code">
+              var React = require('react');
+
+              var {Link} = require('react-router');
+
+              var Examples = (props) => {
+                return (
+                  <div>
+                    <h1 className="text-center">Examples Component</h1>
+                    <p>Here are a few examples to try out:
+                      <ol>
+                        <li>
+                          <Link to='/?location=Murcia'>Murcia, Spain</Link>
+                        </li>
+                        <li>
+                          <Link to='/?location=Rio'>Rio, Brazil</Link>
+                        </li>
+                      </ol>
+                    </p>
+                  </div>
+                )
+              };
+
+              module.exports = Examples;
+            </xmp>
+        </div>
+
+        <p>In the weather components we also use <strong>text-center</strong> foundation class, and classes for buttons like <strong>button, hollow and expanded</strong></p>
+
+        <p>Right now when location is not founded , an ugly alert is shown, we will want to show a styles Foundation modal box</p>
+        <p><a href="http://foundation.zurb.com/sites/docs/reveal.html">Reveal foundation component</a> is in charge of showing a modal
+        and it needs some javascript to set it up</p>
+
+        <p>We will create a Modal component reusable for generic purposes</p>
+
+        <p><strong>components/ErrorModal.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+
+          var React = require('react');
+
+          var ErrorModal = React.createClass({
+            componentDidMount: function() {
+              var modal = new Foundation.Reveal($('#error-modal'));
+              modal.open();
+            },
+            render: function() {
+              return (
+                <div id="error-modal" className="reveal tiny text-center" data-reveal="">
+                  <h4>Some title</h4>
+                  <p>Our error message</p>
+                  <p>
+                    <button className="button hollow" data-close="">
+                      Vamos q nos vamos
+                    </button>
+                  </p>
+                </div>
+              );
+            }
+          });
+
+          module.exports = ErrorModal;
+          </xmp>
+        </div>
+
+        <p>To decide when to show the error dialog we need to know the <a href="https://facebook.github.io/react/docs/react-component.html">ReactJs component lyfecycle</a>
+        </p>
+
+        <p>ErrorModal will fire itself by <strong>componentDidMount</strong> method. This method is invoked in every render update of the component</p>
+        <p>In Weather.jsx , we create a new state property (errorMessage) which any change of its value ,
+          will fire display of error modal</p>
+
+        <p><strong>components/Weather.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+
+            var React = require('react');
+            var WeatherForm = require('WeatherForm');
+            var WeatherMessage = require('WeatherMessage');
+            var openWeatherMap = require('openWeatherMap');
+            var ErrorModal = require('ErrorModal');
+
+            var Weather = React.createClass({
+              getInitialState: function () {
+                return {
+                  isLoading: false,
+
+                }
+              },
+              handleSearch: function (location) {
+                var that = this;
+
+                this.setState({
+                  isLoading: true,
+                  errorMessage: undefined
+                });
+
+                openWeatherMap.getTemp(location).then(function (temp) {
+                  that.setState({
+                    location: location,
+                    temp: temp,
+                    isLoading: false
+                  });
+                }, function (e) {
+                  that.setState({
+                    isLoading: false,
+                    errorMessage: e.message
+                  });
+                });
+              },
+              render: function () {
+                var {isLoading, temp, location, errorMessage} = this.state;
+
+                function renderMessage () {
+                  if (isLoading) {
+                    return <h3 className="text-center">Fetching weather...</h3>;
+                  } else if (temp && location) {
+                    return <WeatherMessage temp={temp} location={location}/>;
+                  }
+                }
+
+                function renderError () {
+
+                  if(typeof errorMessage === 'string') {
+                    return (
+                      <ErrorModal/>
+                    );
+                  }
+
+                }
+
+                return (
+                  <div>
+                    <h1 className="text-center">Get Weather</h1>
+                    <WeatherForm onSearch={this.handleSearch}/>
+                    {renderMessage()}
+                    {renderError()}
+                  </div>
+                )
+              }
+            });
+
+            module.exports = Weather;
+
+
+          </xmp>
+        </div>
+
+        <p>Some <a href="https://facebook.github.io/react/docs/typechecking-with-proptypes.html">React Prop Validation</a> to check provided
+          values to ErrorModal and a default value for title</p>
+          <p><strong>components/ErrorModal.jsx</strong></p>
+          <div class="sample">
+            <xmp class="code">
+              getDefaultProps: function() {
+                return {
+                  title:'Error',
+
+                };
+              },
+              propTypes: {
+                title: React.PropTypes.string,
+                message: React.PropTypes.string.isRequired
+              },
+              ...
+              render: function() {
+                var {title, message} = this.props;
+                return (
+                  <div id="error-modal" className="reveal tiny text-center" data-reveal="">
+                    <h4>{title}</h4>
+                    <p>{message}</p>
+                    <p>
+                      <button className="button hollow" data-close="">
+                        Vamos q nos vamos
+                      </button>
+                    </p>
+                  </div>
+                );
+              }
+            </xmp>
+          </div>
+
+          <p><strong>components/Weather.jsx</strong></p>
+
+          <div class="sample">
+            <xmp class="code">
+              function renderError () {
+
+                if(typeof errorMessage === 'string') {
+                  return (
+                    <ErrorModal message={errorMessage}/>
+                  );
+                }
+
+              }
+            </xmp>
+          </div>
+
+
+
+      </section>
+
+      <section>
+        <a name="sass"></a>
+        <h2>Setting up SASS into the project (Custom CSS)</h2>
+
+        <p>First, lets include a regular css styles file into our project.
+          <br>
+          we create a new folder and a main style file <strong>/app/styles/app.css</strong>
+        </p>
+
+        <div class="sample">
+          <xmp class="code">
+            .page-title {
+              margin-top: 2.5rem;
+              margin-bottom: 2.5rem;
+            }
+          </xmp>
+        </div>
+
+        <p><strong>components/Weather.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            return (
+              <div>
+                <h1 className="text-center page-title">Get Weather</h1>
+                <WeatherForm onSearch={this.handleSearch}/>
+                {renderMessage()}
+                {renderError()}
+              </div>
+            )
+          </xmp>
+        </div>
+
+        <p>As we did with foundation , now we can include our custom css in the same way in the <strong>./app.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            //Load foundation CSS
+            require('style!css!foundation-sites/dist/foundation.min.css');
+            $(document).foundation();
+
+            //App css
+            require('style!css!applicationStyles');
+          </xmp>
+        </div>
+
+        <p>We create an alias in <strong>components/webpack.config.js</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            alias: {
+              Main: 'app/components/Main.jsx',
+              Nav: 'app/components/Nav.jsx',
+              Weather: 'app/components/Weather.jsx',
+              WeatherForm: 'app/components/WeatherForm.jsx',
+              WeatherMessage: 'app/components/WeatherMessage.jsx',
+              About: 'app/components/About.jsx',
+              Examples: 'app/components/Examples.jsx',
+              openWeatherMap: 'app/api/openWeatherMap.jsx',
+              ErrorModal: 'app/components/ErrorModal.jsx',
+              applicationStyles: 'app/styles/app.css'
+            },
+          </xmp>
+        </div>
+
+        <h3>Adding SASS</h3>
+        <a href="http://sass-lang.com">SASS</a> has two types of syntax, we will use SCSS syntax</p>
+        <p>We need install two new plugins: a <a href="https://github.com/jtangelder/sass-loader">SASS loader</a>
+          and <a href="https://github.com/sass/node-sass">node-sass</a> module</p>
+        <div class="sample">
+          <xmp class="code">
+            npm install sass-loader@3.1.2 node-sass@3.4.2
+          </xmp>
+        </div>
+
+        <p>We will rename our app.css file to app.scss and add some SASS variables</p>
+        <div class="sample">
+          <xmp class="code">
+            $space-large: 2.5rem;
+            $purple: purple;
+
+            .page-title {
+              color: $purple;
+              margin-top: $space-large;
+              margin-bottom: 2.5rem;
+            }
+
+            input[type=search] {
+              box-shadow:none;
+            }
+          </xmp>
+        </div>
+
+        <p>And we will update our css include in app.jsx</p>
+
+        <div class="sample">
+          <xmp class="code">
+            //App css
+            require('style!css!sass!applicationStyles');
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="linking"></a>
+        <h2>Linking to location and Wiring up Nav form</h2>
+
+        <p>What we want to do is make links from Examples pages work</p>
+
+        <p>To do that we decide to code a componentDidMount method in <strong>Weather.jsx</strong> where we fetch location query parameter
+        from query string in the url and invoke handleSearch method as needed</p>
+
+        <div class="sample">
+          <xmp class="code">
+            componentDidMount: function() {
+              //Get query params using react router
+              var location = this.props.location.query.location;
+
+              if(location && location.length > 0) {
+                this.handleSearch(location);
+              }
+            },
+          </xmp>
+        </div>
+
+        <p>We also want to clean our data on every search to not to see data of previous tries.
+        <br>
+        Because of that we modify in handleSearch method:
+        <div class="sample">
+          <xmp class="code">
+            this.setState({
+              isLoading: true,
+              errorMessage: undefined,
+              location: undefined,
+              temp: undefined,
+            });
+          </xmp>
+        </div>
+
+        </p>
+
+        <h3>Lets wire up the Search form</h3>
+        <p>First , in <strong>Nav.jsx</strong> we will a "ref" attribute to input field</p>
+        <p>and then update onSearch method:</p>
+        <div class="sample">
+          <xmp class="code">
+            onSearch : function(e) {
+              e.preventDefault();
+              var location = this.refs.search.value;
+              var encodedLocation = encodeURIComponent(location);
+
+              if(location.length > 0) {
+                //Clear fields
+                this.refs.search.value = "";
+                window.location.hash = '#/?location='+encodedLocation;
+              }
+            },
+            ...
+            <input type="search" placeholder="Search weather by city" ref="search"></input>
+          </xmp>
+        </div>
+
+        <p>We see nothing happens. We need to capture changes to props because quer params are integrated as props with react-router.
+        <br>
+        So we need to implement <strong>componentWillReceiveProps</strong> method in <strong>Weather.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            componentWillReceiveProps: function(newProps) {
+              //Get query params using react router
+              var location = newProps.location.query.location;
+
+              if(location && location.length > 0) {
+                this.handleSearch(location);
+
+                //Reset url
+                window.location.hash = '#/';
+              }
+            },
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="fixing"></a>
+        <h2>Fixing the Error Modal</h2>
+
+        <p>There was an error: when error modal arise after not found city , app becomes broken.</p>
+        <p>This is because Foundation remove elements from the DOM and ReactJS get into a unstable state.
+        <br>
+        Lets keep in mind ReactJS is checking all the time the status of the DOM.
+        <br>
+        We see this error in the browser console
+        </p>
+
+        <div class="sample">
+          <xmp class="code">
+            Uncaught (in promise) Error: processUpdates(): Unable to find child 2 of element.
+            This probably means the DOM was unexpectedly mutated (e.g., by the browser), usually due to forgetting
+            a <tbody> when using tables, nesting tags like <form>, <p>, or <a>, or using non-SVG elements in an
+              <svg> parent. Try inspecting the child nodes of the element with React ID `.0.1.0.0`.
+          </xmp>
+        </div>
+
+        <p>ReactJS jas conflic with third parties that updates de DOM
+        <br>
+        All we need to do is , in <strong>ErrorModal.jsx</strong> move out the modal content from the render method into the componentDidMount method
+        <br>
+        To do that we requiere ReactDOMServer object (part of react-dom library)</p>
+        <div class="sample">
+          <xmp class="code">
+            var React = require('react');
+            var ReactDOM = require('react-dom');
+            var ReactDOMServer = require('react-dom/server');
+
+            ....
+
+            componentDidMount: function() {
+              var {title, message} = this.props;
+              var modalMarkup = (
+                <div id="error-modal" className="reveal tiny text-center" data-reveal="">
+                  <h4>{title}</h4>
+                  <p>{message}</p>
+                  <p>
+                    <button className="button hollow" data-close="">
+                      Vamos q nos vamos
+                    </button>
+                  </p>
+                </div>
+              );
+
+              var $modal = $(ReactDOMServer.renderToString(modalMarkup));
+              $(ReactDOM.findDOMNode(this)).html($modal);
+
+              var modal = new Foundation.Reveal($('#error-modal'));
+              modal.open();
+            },
+            render: function() {
+              return (
+                <div></div>
+              );
+            }
+
+          </xmp>
+        </div>
+
+      </section>
+
+      <a href="http://safe-bayou-11608.herokuapp.com/#/?_k=8vgc23" target="_blank">LIVE DEMO</a>
+<br>
+      <a href="https://github.com/jescacena/reactjs-weatherapp" target="_blank">Github</a>
+
+    </main>
+
+  </body>
+</html>

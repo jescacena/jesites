@@ -20,9 +20,13 @@ var getAllTagsFromSiteData= function() {
 };
 
 var buildLinks = function(linksData, siteCardElement) {
+  $('#links', siteCardElement).empty();
   for(var i=0; i<linksData.length;i++) {
-    $('#links', siteCardElement).empty();
-    $('#links', siteCardElement).append("<li><a href='"+linksData[i]+"'>"+linksData[i]+"</a></li>");
+    if(typeof linksData[i] === 'string') {
+      $('#links', siteCardElement).append("<li><a target='_blank' href='"+linksData[i]+"'>"+linksData[i]+"</a></li>");
+    } else {
+      $('#links', siteCardElement).append("<li><a target='_blank' href='"+linksData[i].url+"'>"+linksData[i].label+"</a></li>");
+    }
   }
 };
 
@@ -33,6 +37,35 @@ var buildSiteCardElement = function(siteData) {
     $('#description', siteCardElement).html(siteData.description);
     buildLinks(siteData.links , siteCardElement);
     return siteCardElement[0];
+};
+
+var setHeadTitle = function(text) {
+  $('.head-title').html(text);
+};
+
+var addSiteCardsToMainContent = function(siteCardArray){
+  //loop result and added to central list with cool transitions
+  // debugger;
+
+
+  var resultObjs = [];
+  var aux;
+  for(var i=0;i<siteCardArray.length;i++) {
+    aux = buildSiteCardElement(siteCardArray[i]);
+    console.log("addSiteCardsToMainContent aux" , aux);
+
+    resultObjs[i] = aux;
+  }
+
+
+  for(var i=0;i<resultObjs.length;i++) {
+    $('.sitelist').append(resultObjs[i]);
+  }
+
+  setTimeout(function() {
+    $('.sample-card').addClass('show');
+  } , 10);
+
 };
 
 var showSitesByTag = function(tag, target) {
@@ -49,28 +82,38 @@ var showSitesByTag = function(tag, target) {
     return siteData.tags.indexOf(tag) !== -1;
   });
 
-  //loop result and added to central list with cool transitions
-  // debugger;
+  setHeadTitle(tag);
+  addSiteCardsToMainContent(filteredResults);
 
-  var resultObjs = [];
-  var aux;
-  for(var i=0;i<filteredResults.length;i++) {
-    aux = buildSiteCardElement(filteredResults[i]);
-    console.log("showSitesByTag aux" , aux);
 
-    resultObjs[i] = aux;
+};
+
+//Get last three projects added to display them initially
+var showHighlightedSites = function() {
+  $('nav ul a').removeClass('selected');
+
+  $('.sitelist').empty();
+
+
+  function compare(a,b) {
+    console.log("compare" , a.lastUpdateTimestamp ,b.lastUpdateTimestamp);
+    if (a.lastUpdateTimestamp > b.lastUpdateTimestamp)
+      return -1;
+    if (a.lastUpdateTimestamp < b.lastUpdateTimestamp)
+      return 1;
+    return 0;
   }
 
+  var siteDataArraySorted = siteDataArray.sort(compare);
+  console.log("siteDataArraySorted" , siteDataArraySorted);
 
-// debugger;
-  for(var i=0;i<resultObjs.length;i++) {
-    $('.sitelist').append(resultObjs[i]);
-  }
+  var highlightedSites = siteDataArraySorted.slice(0, 3);
 
-  setTimeout(function() {
-    $('.sample-card').addClass('show');
-  } , 10);
+  console.log("highlightedSites" , highlightedSites);
 
+
+  setHeadTitle("Last projects added");
+  addSiteCardsToMainContent(highlightedSites);
 };
 
 //read catalog.json
@@ -90,6 +133,8 @@ $.ajax({
   _.forEach(getAllTags , function(tag) {
     leftMenuDomObj.append('<li><a href="#" onclick="showSitesByTag(\''+tag+'\', this)">'+tag+'</a></li>');
   });
+
+  showHighlightedSites();
 
   $('.overlay').hide();
 });

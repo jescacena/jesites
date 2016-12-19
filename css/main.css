@@ -111,6 +111,12 @@ main {
 	min-height: 1500px;
 }
 
+main h1.head-title {
+	text-align: center;
+	margin: 2em 0;
+	font-size: 1.7em;
+}
+
 main .sitelist {
 	perspective: 100px;
 }
@@ -132,6 +138,7 @@ main .sample-card {
 	}
   main .sample-card td {
     padding:10px;
+		vertical-align: top;
   }
   main .sample-card td.title-item {
     background-color: #ececec;
@@ -139,6 +146,10 @@ main .sample-card {
 
 	main .sample-card.show {
 		opacity: 1;
+	}
+
+	main ul#links li {
+		margin: 0.2em 0;
 	}
 
 /* footer */

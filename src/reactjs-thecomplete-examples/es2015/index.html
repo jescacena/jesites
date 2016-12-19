@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: EcmaScript 2015</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ReactJS: EcmaScript 2015</h1>
+    </header>
+
+    <main>
+
+      <h2>Some ES6(ES2015) features used in this ReactJs examples</h2>
+      <br>
+      <small>[Fuente: <a href="https://github.com/DrkSephy/es6-cheatsheet">https://github.com/DrkSephy/es6-cheatsheet</a>]</small>
+
+      <section>
+        <ul>
+          <li><a href="#importing">Importing in ES6</a></li>
+          <li><a href="#arrow">Arrow functions</a></li>
+          <li><a href="#spread">Spread operator</a></li>
+          <li><a href="#promises">ES6 Promises</a></li>
+        </ul>
+      </section>
+      <section>
+        <a name="importing"></a>
+        <h2>Importing in ES6</h2>
+        <p>ES6 provides us with various flavors of importing. We can import an entire file:</p>
+        <div class="sample">
+           <xmp class="code">
+             import 'underscore';
+           </xmp>
+        </div>
+        <p><i>It is important to note that simply importing an entire file <strong>will execute all code at the top level of that file</strong>.</i></p>
+        <p>Similar to Python, we have named imports:</p>
+        <div class="sample">
+           <xmp class="code">
+             import { sumTwo, sumThree } from 'math/addition';
+           </xmp>
+        </div>
+        <p>We can also rename the named imports:</p>
+        <div class="sample">
+           <xmp class="code">
+             import {
+                 sumTwo as addTwoNumbers,
+                 sumThree as sumThreeNumbers
+             } from 'math/addition';
+           </xmp>
+        </div>
+
+        <p>In addition, we can import all the things (also called namespace import):</p>
+        <div class="sample">
+           <xmp class="code">
+             import * as util from 'math/addition';
+           </xmp>
+        </div>
+
+        <p>Lastly, we can import a list of values from a module:</p>
+        <div class="sample">
+           <xmp class="code">
+             import * as additionUtil from 'math/addition';
+             const { sumTwo, sumThree } = additionUtil;
+            </xmp>
+        </div>
+
+        <p>Importing from the default binding like this:</p>
+        <div class="sample">
+           <xmp class="code">
+             import api from 'math/addition';
+             // Same as: import { default as api } from 'math/addition';
+            </xmp>
+        </div>
+
+        <p>While it is better to keep the exports simple, but we can sometimes mix default import and mixed import if needed. When we are exporting like this:</p>
+        <div class="sample">
+           <xmp class="code">
+             // foos.js
+             export { foo as default, foo1, foo2 };
+            </xmp>
+        </div>
+
+        <p>We can import them like the following:</p>
+        <div class="sample">
+           <xmp class="code">
+             import foo, { foo1, foo2 } from 'foos';
+            </xmp>
+        </div>
+
+        <p>When importing a module exported using commonjs syntax (such as React) we can do:</p>
+        <div class="sample">
+           <xmp class="code">
+             import React from 'react';
+             const { Component, PropTypes } = React;
+            </xmp>
+        </div>
+
+        <p>This can also be simplified further, using:</p>
+        <div class="sample">
+           <xmp class="code">
+             import React, { Component, PropTypes } from 'react';
+            </xmp>
+        </div>
+        <p>Note: Values that are exported are bindings, not references. Therefore, changing the binding of a variable in one module will affect the value within the exported module. <strong>Avoid changing the public interface of these exported values</strong>.</p>
+
+
+
+        <a name="arrow"></a>
+        <h2>Arrow functions</h2>
+        <p>Often times we have nested functions in which we would like to preserve the context of this from its lexical scope. An example is shown below:</p>
+        <div class="sample">
+           <xmp class="code">
+             function Person(name) {
+                 this.name = name;
+             }
+
+             Person.prototype.prefixName = function (arr) {
+                 return arr.map(function (character) {
+                     return this.name + character; // Cannot read property 'name' of undefined
+                 });
+             };
+           </xmp>
+        </div>
+        <p>One common solution to this problem is to store the context of this using a variable:</p>
+        <div class="sample">
+           <xmp class="code">
+             function Person(name) {
+                 this.name = name;
+             }
+
+             Person.prototype.prefixName = function (arr) {
+                 var that = this; // Store the context of this
+                 return arr.map(function (character) {
+                     return that.name + character;
+                 });
+             };
+           </xmp>
+        </div>
+        <p>We can also pass in the proper context of this:</p>
+        <div class="sample">
+           <xmp class="code">
+             function Person(name) {
+                 this.name = name;
+             }
+
+             Person.prototype.prefixName = function (arr) {
+                 return arr.map(function (character) {
+                     return this.name + character;
+                 }, this);
+             };
+           </xmp>
+        </div>
+        <p>As well as bind the context:</p>
+        <div class="sample">
+           <xmp class="code">
+             function Person(name) {
+                 this.name = name;
+             }
+
+             Person.prototype.prefixName = function (arr) {
+                 return arr.map(function (character) {
+                     return this.name + character;
+                 }.bind(this));
+             };
+           </xmp>
+        </div>
+        <p>Using <strong>Arrow Functions</strong>, the lexical value of this isn't shadowed and we can re-write the above as shown:</p>
+        <div class="sample">
+           <xmp class="code">
+             function Person(name) {
+                 this.name = name;
+             }
+
+             Person.prototype.prefixName = function (arr) {
+                 return arr.map(character => this.name + character);
+             };
+           </xmp>
+        </div>
+        <p>Arrow Functions are also more concise when used in function expressions which simply return a value:</p>
+        <div class="sample">
+           <xmp class="code">
+             var squares = arr.map(function (x) { return x * x }); // Function Expression
+           </xmp>
+        </div>
+        <div class="sample">
+           <xmp class="code">
+             const arr = [1, 2, 3, 4, 5];
+             const squares = arr.map(x => x * x); // Arrow Function for terser implementation
+           </xmp>
+        </div>
+
+        <a name="promises"></a>
+        <h2>ES6 Promises</h2>
+        <p>Promises allow us to turn our horizontal code (callback hell):</p>
+        <div class="sample">
+           <xmp class="code">
+             func1(function (value1) {
+                 func2(value1, function (value2) {
+                     func3(value2, function (value3) {
+                         func4(value3, function (value4) {
+                             func5(value4, function (value5) {
+                                 // Do something with value 5
+                             });
+                         });
+                     });
+                 });
+             });
+            </xmp>
+        </div>
+
+        <p>Into vertical code:</p>
+        <div class="sample">
+           <xmp class="code">
+             func1(value1)
+                 .then(func2)
+                 .then(func3)
+                 .then(func4)
+                 .then(func5, value5 => {
+                     // Do something with value 5
+                 });
+            </xmp>
+        </div>
+
+        <p>Prior to ES6, we used bluebird or Q. Now we have Promises natively:</p>
+        <div class="sample">
+           <xmp class="code">
+             new Promise((resolve, reject) =>
+                 reject(new Error('Failed to fulfill Promise')))
+                     .catch(reason => console.log(reason));
+            </xmp>
+        </div>
+
+        <p>Where we have two handlers, resolve (a function called when the Promise is fulfilled) and reject (a function called when the Promise is rejected).</p>
+        <p>Benefits of Promises: Error Handling using a bunch of nested callbacks can get chaotic. Using Promises, we have a clear path to bubbling errors up and handling them appropriately. Moreover, the value of a Promise after it has been resolved/rejected is immutable - it will never change.</p>
+
+        <p>Here is a practical example of using Promises:</p>
+        <div class="sample">
+           <xmp class="code">
+             var request = require('request');
+
+             return new Promise((resolve, reject) => {
+               request.get(url, (error, response, body) => {
+                 if (body) {
+                     resolve(JSON.parse(body));
+                   } else {
+                     resolve({});
+                   }
+               });
+             });
+           </xmp>
+        </div>
+
+        <p>We can also parallelize Promises to handle an array of asynchronous operations by using Promise.all():</p>
+        <div class="sample">
+           <xmp class="code">
+             let urls = [
+               '/api/commits',
+               '/api/issues/opened',
+               '/api/issues/assigned',
+               '/api/issues/completed',
+               '/api/issues/comments',
+               '/api/pullrequests'
+             ];
+
+             let promises = urls.map((url) => {
+               return new Promise((resolve, reject) => {
+                 $.ajax({ url: url })
+                   .done((data) => {
+                     resolve(data);
+                   });
+               });
+             });
+
+             Promise.all(promises)
+               .then((results) => {
+                 // Do something with results of all our promises
+              });
+           </xmp>
+        </div>
+
+
+
+
+
+        <a name="spread"></a>
+        <h2>Spread Operator</h2>
+        <p>In ES5, we could find the max of values in an array by using the apply method on Math.max like this:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             Math.max.apply(null, [-1, 100, 9001, -32]); // 9001
+            </xmp>
+        </div>
+
+        <p>In ES6, we can now use the spread operator to pass an array of values to be used as parameters to a function:</p>
+        <div class="sample">
+           <xmp class="code">
+             Math.max(...[-1, 100, 9001, -32]); // 9001
+            </xmp>
+        </div>
+
+        <p>We can concat array literals easily with this intuitive syntax:</p>
+        <div class="sample">
+           <xmp class="code">
+             let cities = ['San Francisco', 'Los Angeles'];
+             let places = ['Miami', ...cities, 'Chicago']; // ['Miami', 'San Francisco', 'Los Angeles', 'Chicago']
+            </xmp>
+        </div>
+
+        <p>We can inherit structure of parent objects</p>
+        <div class="sample">
+           <xmp class="code">
+             var obj1 = {
+               name:'Casimiro',
+               city:'Cuenca'
+             };
+
+             var obj2 = {
+               ...obj1,
+               age:25
+             };
+
+             /*
+             obj2 = {
+               name:'Casimiro',
+               city:'Cuenca',
+               age:25
+             }
+             */
+            </xmp>
+        </div>
+
+
+      </section>
+
+    </main>
+
+  </body>
+</html>

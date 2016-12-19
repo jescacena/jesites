@@ -1,0 +1,21 @@
+{
+  "title": "UDEMY: ReactJS examples (the-complete-react-web-app-developer-course)",
+  "description" : "ReactJS , Atom Editor , Webpack , Heroku , Unit testing,  Redux",
+  "tags": "ReactJS  , Webpack , Heroku, Redux",
+  "lastUpdateTimestamp":1482156216,
+  "links": [
+            "http://reactjs.com",
+            {
+               "label":"Udemy: The Complete REact Web App Developer Course",
+               "url":"https://www.udemy.com/the-complete-react-web-app-developer-course"
+            },
+            {
+               "label":"Weather App - Live Demo hosted by Heroku",
+               "url":"http://safe-bayou-11608.herokuapp.com/#/?_k=8vgc23"
+            },
+            {
+               "label":"Weather App - Github",
+               "url":"https://github.com/jescacena/reactjs-weatherapp"
+            }
+          ]
+}

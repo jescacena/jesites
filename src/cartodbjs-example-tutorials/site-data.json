@@ -2,5 +2,12 @@
   "title": "CartoDB.js tutorial examples",
   "description" : "Example integrating Cartodb maps in your website with CartoDB.js",
   "tags": "CartoDB, angularjs-ui-router, web mapping",
-  "links": ["cartodb.com"]
+  "links": ["cartodb.com"
+    {
+      "url":"https://github.com/angular-ui/ui-router",
+      "label":"Github ui-router"
+    }
+  ],
+  "lastUpdateTimestamp":1451606400
+
 }
