@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>JESAMPLES</title>
+  <title>JESITES</title>
   <link href='https://fonts.googleapis.com/css?family=Quicksand:400,700' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="css/main.css" />
 
