@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Testing & Component Lyfecycle: Timer App</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ReactJS: Testing & Component Lyfecycle: Timer App</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Index</h2>
+        <ul>
+          <li><a href="#strategy">Component strategy</a></li>
+          <li><a href="#adding-nav">Adding the navigation bar</a></li>
+          <li><a href="#custom-nav">Customizing the navigation bar</a></li>
+          <li><a href="#basics">Basics of testing</a></li>
+          <li><a href="#configure">Configure Tests With Webpack and React</a></li>
+          <li><a href="#routes">Adding routes and container components</a></li>
+          <li><a href="#clock">Clock component</a></li>
+          <li><a href="#countdown">Countdown form</a></li>
+          <li><a href="#spies">Testing our form with spies</a></li>
+          <li><a href="#starting-countdown">Starting the countdown</a></li>
+          <li><a href="#testing-countdown">Testing the countdown works</a></li>
+          <li><a href="#creating">Creating our controls</a></li>
+          <li><a href="#pausing">Pausing , starting and resetting</a></li>
+          <li><a href="#component-lyfecycle">Component Lyfecycle</a></li>
+          <li><a href="#testing-pausing">Testing pausing and resetting</a></li>
+          <li><a href="#project-setup-solution">Timer: project setup and solution</a></li>
+          <li><a href="#foundation-karma">Foundation Settings and Karma issues</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <a name="strategy"></a>
+        <h2>Component strategy</h2>
+        <img src="../img/timer-capture-1.png" width="100%">
+
+        <a href="https://afternoon-beach-37774.herokuapp.com/" target="_blank">LIVE DEMO</a>
+        <br>
+        <a href="https://github.com/jescacena/reactjs-timerapp" target="_blank">Github</a>
+
+      </section>
+
+      <section>
+        <a name="adding-nav"></a>
+        <h2>Adding the navigation bar</h2>
+
+        <h3>Setup of the project based on the React boilerplate of previous chapters</h3>
+        <p>
+          Unzip <a href="./react_boilerplate.zip">this React boilerplate</a>
+          and check it works running
+        </p>
+        <div class="sample">
+           <xmp class="code">
+             npm install
+             npm start
+            </xmp>
+        </div>
+
+        and in other terminal:
+        <div class="sample">
+           <xmp class="code">
+             webpack -w
+            </xmp>
+        </div>
+
+        <p>Just make what we did in Weather app , create a Nav.jsx component , use react router to link two menu items : Timer and CountDown</p>
+      </section>
+
+      <section>
+        <a name="custom-nav"></a>
+        <h2>Customizing the navigation bar</h2>
+
+        <p>We will add custom styles using SASS</p>
+        <p>This time we will organize styles by components, so <strong>app.scss will import other scss files</strong> with partials of styles</p>
+        <p><strong>/app/styles/app.scss</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             @import "base/variables";
+             @import "components/navigation";
+            </xmp>
+        </div>
+        <p><strong>/app/styles/base/_variables.scss</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             //Colours
+             $grey: #333333;
+
+             // Navigation colors
+             $nav-background: $grey;
+            </xmp>
+        </div>
+        <p><strong>/app/styles/components/_navigation.scss</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             //Some overwrite of Foundation styles
+             .top-bar {
+               background-color: $nav-background;
+             }
+            </xmp>
+        </div>
+
+        <p>We share our project with Git and Github and deploy into Heroku</p>
+      </section>
+
+      <section>
+        <a name="basics"></a>
+        <h2>Basics of Testing</h2>
+        <p>Our challenge in this part is add unit testing for the reactjs components.</p>
+        <p>This tests will be integrated in webpack in the way which they will rerun every time app is updated.
+        <br>
+        This way we assure component still works as expected.
+        </p>
+        <p>One unit test to do , for example, is assure that when we set timer component to 70 seconds ,
+        it will show 1 munute and ten seconds in the display</p>
+
+        <p>We will use an assertion library to make checks in our components:
+        <br>
+        <a href="https://github.com/mjackson/expect">Michael Jackson Assertion Library</a>
+
+        </p>
+      </section>
+
+      <section>
+        <a name="configure"></a>
+        <h2>Configure Tests With Webpack and React</h2>
+        <p>Our target here is be able to run <strong>"npm test"</strong> to run unit tests</p>
+
+        <p>NPM packages to install</p>
+
+        <div class="sample">
+           <xmp class="code">
+             sudo npm install karma@0.13.22 karma-chrome-launcher@0.2.2 karma-mocha@0.2.2 karma-mocha-reporter@2.0.0 --save-dev
+             sudo npm install karma-sourcemap-loader@0.3.7 karma-webpack@1.7.0 mocha@2.4.5 expect@1.14.0 --save-dev
+            </xmp>
+        </div>
+
+        <p><strong><a href="https://karma-runner.github.io/1.0/index.html">Karma</a></strong> is a test runner</p>
+        <p><strong><a href="https://github.com/demerzel3/karma-sourcemap-loader">Karma sourcemap loader</a></strong> to include sourcemaps into the bundle</p>
+        <p><strong><a href="https://mochajs.org/">Mocha</a></strong> is a test framework.
+        It will provide us with "describe" and "it" syntax elements to write unit tests</p>
+
+        <p>We add a <strong>./karma.conf.js</strong> configuration file for Karma</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var webpackConfig = require('./webpack.config.js');
+             module.exports = function(config) {
+               config.set({
+                 browsers: ['Chrome'],
+                 singleRun:true,
+                 frameworks: ['mocha'],
+                 files: ['app/tests/**/*.test.jsx'],
+                 preprocessors: {
+                   'app/tests/**/*.test.jsx': ['webpack', 'sourcemap']
+                 },
+                 reporters: ['mocha'],
+                 client: {
+                   mocha: {
+                     timeout: '5000'
+                   }
+                 },
+                 webpack:webpackConfig,
+                 webpackServer: {
+                   noInfo:true
+                 }
+
+               });
+             }
+            </xmp>
+        </div>
+        <p>The client configuration specify maximum time wait for the unit test to finish</p>
+        <p>The webpack config let us use webpack configuration to write tests in a modular way (require)</p>
+
+        <p>we add a simple unit test file <strong>app/tests/app.test.jsx</strong></p>
+
+        <div class="sample">
+           <xmp class="code">
+             var expect = require('expect');
+
+             describe('App', () => {
+               it('it should properly run tests' , () => {
+                 expect(1).toBe(1);
+               });
+             });
+            </xmp>
+        </div>
+
+        <p>We run tests by npm</p>
+        <div class="sample">
+           <xmp class="code">
+             npm test
+            </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="routes"></a>
+        <h2>Adding routes and container components</h2>
+        <p>Already done: create Timer.jsx and CountDown.jsx and link them into the component hierarchy</p>
+      </section>
+
+      <section>
+        <a name="clock"></a>
+        <h2>Clock component</h2>
+
+        <p>NPM package to install: <a href="https://facebook.github.io/react/docs/test-utils.html">React Test utilities</a></p>
+
+        <div class="sample">
+           <xmp class="code">
+             sudo npm install react-addons-test-utils@0.14.6 --save-dev
+            </xmp>
+        </div>
+
+        <p><strong>app/components/Clock.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+
+             var Clock = React.createClass({
+               formatSeconds: function(totalSeconds) {
+                 var seconds = totalSeconds % 60;
+                 var minutes = Math.floor(totalSeconds / 60);
+
+                 if(seconds < 10){
+                   seconds = '0' + seconds;
+                 }
+                 if(minutes < 10){
+                   minutes = '0' + minutes;
+                 }
+
+                 return minutes + ':' + seconds;
+               },
+               render: function() {
+                 return (
+                   <div>
+
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = Clock;
+            </xmp>
+        </div>
+
+        <p><strong>app/tests/components/Clock.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var ReactDOM = require('react-dom');
+             var expect = require('expect');
+             var $ = require('jQuery');
+             var TestUtils = require('react-addons-test-utils');
+
+             var Clock = require('Clock');
+
+             describe('Clock' , () => {
+               it('it should exist', () => {
+                 expect(Clock).toExist();
+               });
+
+               describe('render', () => {
+                 it('should render clock to output', () => {
+                   var clock = TestUtils.renderIntoDocument(<Clock totalSeconds={62}/>);
+                   var $el = $(ReactDOM.findDOMNode(clock));
+                   var actualText = $el.find('.clock-text').text();
+                   expect(actualText).toBe('01:02');
+                 });
+               });
+
+               describe('formatSeconds', () => {
+                 it('should format seconds', () => {
+                   var clock = TestUtils.renderIntoDocument(<Clock/>);
+                   var seconds = 615;
+                   var expected = '10:15';
+                   var actual = clock.formatSeconds(seconds);
+
+                   expect(actual).toBe(expected);
+                 });
+                 it('should format seconds when min/sec are less than 10', () => {
+                   var clock = TestUtils.renderIntoDocument(<Clock/>);
+                   var seconds = 61;
+                   var expected = '01:01';
+                   var actual = clock.formatSeconds(seconds);
+
+                   expect(actual).toBe(expected);
+                 });
+               });
+             });
+
+            </xmp>
+        </div>
+
+        <p><strong>app/components/CountDown.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var Clock = require('Clock');
+
+             var CountDown = React.createClass({
+               render: function() {
+                 return (
+                   <div>
+                     <Clock totalSeconds={129}/>
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = CountDown;
+            </xmp>
+        </div>
+
+        <p><strong>/app/styles/components/_clock.scss</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             .clock {
+               align-items: center;
+               background-color: $clock-bg-color;
+               border: 2px solid $clock-border-color;
+               border-radius: 50%;
+               display: flex;
+               height: 14rem;
+               justify-content: center;
+               margin:4rem auto;
+               width: 14rem;
+             }
+
+             .clock-text {
+               color:$clock-text-color;
+               font-size: 2.25rem;
+               font-weight: 300;
+             }
+            </xmp>
+        </div>
+        <p><strong>/app/styles/base/_variables.scss</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             //Colours
+             $grey: #333333;
+
+             // Navigation colors
+             $nav-background: $grey;
+
+             $nav-text-color: white;
+
+             //clock
+             $clock-text-color: white;
+             $clock-bg-color: #b5d0e2;
+             $clock-border-color: #2099e8;
+            </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="countdown"></a>
+        <h2>Countdown form</h2>
+        <p>Remember the way children communicate with parents it is by passing handler functions on the props.
+        In this case <strong>onSetCountdown</strong> method </p>
+
+        <p>We create a new <strong>/app/components/CountDownForm.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+
+             var CountDownForm = React.createClass({
+
+               onSubmit: function(e) {
+                 e.preventDefault();   //This prevents browser refresh
+                 var strSeconds = this.refs.seconds.value;
+
+                 if(strSeconds.match(/^[0-9]*$/)) {
+                   this.refs.seconds.value="";
+                   this.props.onSetCountdown(parseInt(strSeconds, 10));
+                 }
+               },
+               render: function() {
+                 return (
+                   <div>
+                     <form ref="form" onSubmit={this.onSubmit} className="countdown-form">
+                       <input type="text" ref="seconds" placeholder="Enter time in seconds"/>
+                       <button className="button expanded">Start</button>
+                     </form>
+                   </div>
+                 );
+               }
+
+             });
+
+             module.exports = CountDownForm;
+            </xmp>
+        </div>
+
+        <p>We add CountDownForm to <strong>CountDown component</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var Clock = require('Clock');
+             var CountDownForm = require('CountDownForm');
+
+             var CountDown = React.createClass({
+               getInitialState : function() {
+                 return {
+                   count:0
+                 };
+               },
+               handleSetCountdown: function(seconds) {
+                 this.setState({
+                   count:seconds
+                 });
+
+               },
+               render: function() {
+                 var {count} = this.state;
+                 return (
+                   <div>
+                     <Clock totalSeconds={count}/>
+                     <CountDownForm onSetCountdown={this.handleSetCountdown}/>
+
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = CountDown;
+
+            </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="spies"></a>
+        <h2>Testing our form with spies</h2>
+        <p>We want to check onSetCountdown method is invoked every time we pass a valid seconds on the input box</p>
+        <p>We will use <strong>spies</strong> for that testing.See more info in <a href="https://github.com/mjackson/expect">Michael Jackson expect assertion library documentation</a></p>
+
+        <p><strong>app/tests/components/CountDownForm.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var expect = require('expect');
+             var React  = require('react');
+             var ReactDOM = require('react-dom');
+
+             var TestUtils = require('react-addons-test-utils');
+
+             var $ = require('jQuery');
+
+             var CountDownForm = require('CountDownForm');
+
+             describe('CountDownForm' , () => {
+               it('it should exist', () => {
+                 expect(CountDownForm).toExist();
+               });
+
+               it('should call onSetCountdown if valid seconds entered', () => {
+                 var spy = expect.createSpy();
+                 var countDownForm = TestUtils.renderIntoDocument(<CountDownForm onSetCountdown={spy}/>);
+
+                 var $el = $(ReactDOM.findDOMNode(countDownForm));
+
+                 countDownForm.refs.seconds.value = "109";
+
+                 TestUtils.Simulate.submit($el.find('form')[0]);
+
+                 expect(spy).toHaveBeenCalledWith(109);
+               });
+               it('should not call onSetCountdown if invalid seconds entered', () => {
+                 var spy = expect.createSpy();
+                 var countDownForm = TestUtils.renderIntoDocument(<CountDownForm onSetCountdown={spy}/>);
+
+                 var $el = $(ReactDOM.findDOMNode(countDownForm));
+
+                 countDownForm.refs.seconds.value = "2w";
+
+                 TestUtils.Simulate.submit($el.find('form')[0]);
+
+                 expect(spy).toNotHaveBeenCalled();
+               });
+             });
+            </xmp>
+        </div>
+      </section>
+
+
+      <section>
+        <a name="starting-countdown"></a>
+        <h2>Starting the countdown</h2>
+
+        <p>First we need to add a new state variable to store state of the countdown ,if it is started, if it is paused, etc</p>
+
+        <p>We add <strong>countdownStatus</strong> state variable. It will have possible values: stopped , started and paused.</p>
+
+        <p>For checking when this value change, we will use <strong>componentDidUpdate</strong> lyfecycle method.
+        It will have two argumens: prevProps and prevState. In prevState we will be able to detect when countdownStatus change.</p>
+
+        <p><strong>app/components/CountDown.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var Clock = require('Clock');
+             var CountDownForm = require('CountDownForm');
+
+             var CountDown = React.createClass({
+               getInitialState : function() {
+                 return {
+                   count:0,
+                   countdownStatus: 'stopped'
+                 };
+               },
+               componentDidUpdate: function(prevProps , prevState) {
+                 if(this.state.countdownStatus !== prevState.countdownStatus) {
+                   switch(this.state.countdownStatus) {
+                     case 'started':
+                       this.startTimer();
+                       break;
+                   }
+
+                 }
+
+               },
+
+               startTimer: function() {
+                 this.timer = setInterval(() => {
+                   var newCount = this.state.count -1;
+                   this.setState({
+                     count: (newCount >=0)? newCount : 0
+                   });
+                 },1000);
+               },
+               handleSetCountdown: function(seconds) {
+                 this.setState({
+                   count:seconds,
+                   countdownStatus:'started'
+                 });
+
+               },
+               render: function() {
+                 var {count} = this.state;
+                 return (
+                   <div>
+                     <Clock totalSeconds={count}/>
+                     <CountDownForm onSetCountdown={this.handleSetCountdown}/>
+
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = CountDown;
+            </xmp>
+        </div>
+
+      </section>
+
+
+      <section>
+        <a name="testing-countdown"></a>
+        <h2>Testing the countdown works</h2>
+        <p>What we want to test is that Countdown component effectively makes minus 1 every time the component is updated.</p>
+        <p>we also check that never counts go to negative</p>
+        <p>Here we do an asynchronous test so we need to tell mocha when action is finished by adding <strong>done</strong> callback in the it block</p>
+        <p><strong>app/tests/components/CountDown.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var expect = require('expect');
+             var React  = require('react');
+             var ReactDOM = require('react-dom');
+             var TestUtils = require('react-addons-test-utils');
+             var $ = require('jQuery');
+
+             var CountDown = require('CountDown');
+
+             describe('Countdown', () => {
+               it('should exist', () => {
+                 expect(CountDown).toExist();
+               });
+
+               describe('handleSetCountdown', () => {
+                 it('should set status to started and countdown', (done)=> {
+                   var countdown = TestUtils.renderIntoDocument(<CountDown/>);
+
+                   countdown.handleSetCountdown(10);
+
+                   expect(countdown.state.count).toBe(10);
+                   expect(countdown.state.countdownStatus).toBe('started');
+
+                   setTimeout(()=> {
+                     expect(countdown.state.count).toBe(9);
+                     done();
+                   }, 1001);
+                 });
+                 it('should not set a negative countdown', (done)=> {
+                   var countdown = TestUtils.renderIntoDocument(<CountDown/>);
+
+                   countdown.handleSetCountdown(1);
+
+                   setTimeout(()=> {
+                     expect(countdown.state.count).toBe(0);
+                     done();
+                   }, 3000);
+                 });
+               });
+             });
+            </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="creating"></a>
+        <h2>Creating our controls</h2>
+        <p>We create a Controls component with two button: Start or Pause</p>
+        <p><strong>app/components/Controls.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+
+             var Controls = React.createClass({
+               propTypes: {
+                 countdownStatus:React.PropTypes.string.isRequired
+               },
+
+               render: function() {
+                 var {countdownStatus} = this.props;
+
+                 var renderStartStopButton = () => {
+                   if(countdownStatus==='started') {
+                     return <button className="button secondary">Pause</button>
+                   } else if(countdownStatus==='paused') {
+                     return <button className="button primary">Start</button>
+                   }
+                 };
+
+                 return (
+                   <div className="controls">
+                     {renderStartStopButton()}
+                     <button className="button alert hollow">Clear</button>
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = Controls;
+
+           </xmp>
+       </div>
+        <p><strong>app/tests/components/Controls.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var expect = require('expect');
+             var React  = require('react');
+             var ReactDOM = require('react-dom');
+             var TestUtils = require('react-addons-test-utils');
+             var $ = require('jQuery');
+
+             var Controls = require('Controls');
+
+             describe('Controls' , () => {
+               it('should exist', () => {
+                 expect(Controls).toExist();
+               });
+
+               describe('render', ()=> {
+                 it('should render pause when started', () => {
+                   var controls = TestUtils.renderIntoDocument(<Controls countdownStatus="started"/>);
+
+                   var $el = $(ReactDOM.findDOMNode(controls));
+
+                   var $pauseButton = $el.find('button:contains(Pause)');
+
+                   expect($pauseButton.length).toBe(1);
+                 });
+                 it('should render start when paused', () => {
+                   var controls = TestUtils.renderIntoDocument(<Controls countdownStatus="paused"/>);
+
+                   var $el = $(ReactDOM.findDOMNode(controls));
+
+                   var $startButton = $el.find('button:contains(Start)');
+
+                   expect($startButton.length).toBe(1);
+                 });
+               });
+             });
+            </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="pausing"></a>
+        <h2>Pausing , starting and resetting</h2>
+
+        <p>For conditional rendering we need to create functions to check state variables and render different jsx stuff</p>
+
+        <p>We capture the click event in the buttons with "onClick" attribute</p>
+
+        <p>Click events will trigger a callback method passed in for the parent component (CountDown.jsx)</p>
+
+
+        <p><strong>app/components/Controls.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+
+             var Controls = React.createClass({
+               propTypes: {
+                 countdownStatus:React.PropTypes.string.isRequired,
+                 onStatusChange:React.PropTypes.func.isRequired
+               },
+
+               onStatusChange: function(newStatus) {
+                 return () => {
+                   this.props.onStatusChange(newStatus);
+                 };
+               },
+
+               render: function() {
+                 var {countdownStatus} = this.props;
+
+                 var renderStartStopButton = () => {
+                   if(countdownStatus==='started') {
+                     return <button className="button secondary" onClick={this.onStatusChange('paused')}>Pause</button>
+                   } else if(countdownStatus==='paused') {
+                     return <button className="button primary" onClick={this.onStatusChange('started')}>Start</button>
+                   }
+                 };
+
+                 return (
+                   <div className="controls">
+                     {renderStartStopButton()}
+                     <button className="button alert hollow" onClick={this.onStatusChange('stopped')}>Clear</button>
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = Controls;
+            </xmp>
+        </div>
+
+        <p><strong>app/components/CountDown.jsx</strong></p>
+        <p>Click handlers will set status changes and <strong>componenDidUpdate</strong> will be triggered automatically by React</p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var Clock = require('Clock');
+             var CountDownForm = require('CountDownForm');
+             var Controls = require('Controls');
+
+
+
+             var CountDown = React.createClass({
+               getInitialState : function() {
+                 return {
+                   count:0,
+                   countdownStatus: 'stopped'
+                 };
+               },
+               componentDidUpdate: function(prevProps , prevState) {
+                 if(this.state.countdownStatus !== prevState.countdownStatus) {
+                   switch(this.state.countdownStatus) {
+                     case 'started':
+                       this.startTimer();
+                       break;
+                     case 'stopped':
+                       this.setState({count:0});
+                     case 'paused':
+                       clearInterval(this.timer);
+                       this.timer = undefined;
+                       break;
+
+                   }
+
+                 }
+
+               },
+
+               startTimer: function() {
+                 this.timer = setInterval(() => {
+                   var newCount = this.state.count -1;
+                   this.setState({
+                     count: (newCount >=0)? newCount : 0
+                   });
+                 },1000);
+               },
+               handleSetCountdown: function(seconds) {
+                 this.setState({
+                   count:seconds,
+                   countdownStatus:'started'
+                 });
+
+               },
+
+               handleStatusChange: function(newStatus) {
+                 this.setState({
+                   countdownStatus:newStatus
+                 });
+               },
+               render: function() {
+                 var {count, countdownStatus} = this.state;
+                 var renderControlArea = () => {
+                   if(countdownStatus !== 'stopped') {
+                     return  <Controls countdownStatus={countdownStatus} onStatusChange={this.handleStatusChange}/>;
+                   } else {
+                     return  <CountDownForm onSetCountdown={this.handleSetCountdown}/>;
+
+                   }
+                 };
+                 return (
+                   <div>
+                     <Clock totalSeconds={count}/>
+                     {renderControlArea()}
+                   </div>
+                 );
+               }
+             });
+
+             module.exports = CountDown;
+            </xmp>
+        </div>
+
+
+      </section>
+
+
+      <section>
+        <a name="component-lyfecycle"></a>
+        <h2>Component Lyfecycle</h2>
+
+        <p><a href="http://busypeoples.github.io/post/react-component-lifecycle/">Understanding the React component lifecycle</a></p>
+
+        <p>In our example we use <strong>componentWillUnmount</strong> method to clearInterval not being used</p>
+
+        <div class="sample">
+           <xmp class="code">
+             componentWillUnmount: function() {
+                 // console.log('componentWillUnmount');
+                 clearInterval(this.timer);
+                 this.timer = undefined;
+             },
+            </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="testing-pausing"></a>
+        <h2>Testing pausing and resetting</h2>
+
+        <p>We want to check pause functionality , if count is set to 3 and we click pause it will remain in three</p>
+
+        <p><strong>app/tests/components/CountDown.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             it('should not set a negative countdown', (done)=> {
+               var countdown = TestUtils.renderIntoDocument(<CountDown/>);
+
+               countdown.handleSetCountdown(1);
+
+               setTimeout(()=> {
+                 expect(countdown.state.count).toBe(0);
+                 done();
+               }, 3001);
+             });
+
+             it('should stop countdown when stopped status', (done) => {
+               var countdown = TestUtils.renderIntoDocument(<CountDown/>);
+               countdown.handleSetCountdown(3);
+
+               countdown.handleStatusChange('stopped');
+
+               setTimeout(()=>{
+                 expect(countdown.state.count).toBe(0);
+                 expect(countdown.state.countdownStatus).toBe('stopped');
+                 done();
+               },1001);
+             });
+           </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="project-setup-solution"></a>
+        <h2>Timer: project setup and solution</h2>
+        <p>We can reuse many components of Countdown app like Clock and Controls</p>
+        <p>just do it ;P</p>
+      </section>
+
+      <section>
+        <a name="foundation-karma"></a>
+        <h2>Foundation Settings and Karma issues</h2>
+
+        <p>If we decide to use jQuery inside the components karma test are going to fail , because it doesn't recognize jQuery.
+        <br>
+        As we did in webpack config file, in the <strong>karma.conf.js</strong>, we need to specify , in the files section, the jQuery library
+        </p>
+
+        <p>Another note is we can customize Foundation by SASS variables.
+        <br>
+        Just remove require for foundation.min.css from app.jsx
+        <br>
+        Include <strong>sassLoader</strong> section in webpack.config.js
+        <br>
+        Modify app.scss to import foundation-settings , and foundation
+        </p>
+      </section>
+
+
+      <a href="https://afternoon-beach-37774.herokuapp.com/" target="_blank">LIVE DEMO</a>
+      <br>
+      <a href="https://github.com/jescacena/reactjs-timerapp" target="_blank">Github</a>
+
+    </main>
+
+  </body>
+</html>

@@ -17,5 +17,10 @@
                "label":"Weather App - Github",
                "url":"https://github.com/jescacena/reactjs-weatherapp"
             }
+            },
+            {
+               "label":"Ecmascript 6 Cheat Sheet",
+               "url":"https://github.com/DrkSephy/es6-cheatsheet"
+            }
           ]
 }
