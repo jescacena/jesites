@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Building a Todo App</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ReactJS: Building a Todo App</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Index</h2>
+        <ul>
+          <li><a href="#goals">App demo and learning goals</a></li>
+          <li><a href="#root">Creating the root component (TodoApp) - Webpack to add atumatic alias</a></li>
+          <li><a href="#rendering-list">Rendering Lists in React (TodoList and Todo)</a></li>
+          <li><a href="#testing-list">Testing lists components</a></li>
+          <li><a href="#addtodo">AddTodo component</a></li>
+          <li><a href="#setting-filter">Setting up the filter component</a></li>
+          <li><a href="#testing-filter">Testing the filter componentt</a></li>
+          <li><a href="#spread">The Spread operator</a></li>
+          <li><a href="#wiring-addtodo">Wiring up AddTodo</a></li>
+          <li><a href="#toggling">Toggling Todos</a></li>
+          <li><a href="#testing-toggling">Testing toggling todos</a></li>
+          <li><a href="#local-storage">Storing Todos in local storage</a></li>
+          <li><a href="#testing-api">Testing our Todo API</a></li>
+          <li><a href="#wiringup-search">Wiring up search</a></li>
+          <li><a href="#dates">Dates with Moment</a></li>
+          <li><a href="#timestamps">Adding created at and completed at timestamps</a></li>
+          <li><a href="#styling">Styling Todo App</a></li>
+        </ul>
+      </section>
+
+
+      <section>
+        <a name="goals"></a>
+        <h2>App demo and learning goals</h2>
+        <p>In this app we will make persist a list of todos.We will be able to add new TODOs , changfe them to done status and
+        filter themby som criteria</p>
+        <p>This is the component breakdown:</p>
+        <img src="../img/todoapp-capture-1.png" width="100%">
+      </section>
+
+      <section>
+        <a name="root"></a>
+        <h2>Creating the root component (TodoApp)</h2>
+        <p>This time to start the project we anre not going to uncompress react-boilerplate.zip from the previous chapter.
+        We will do it in another way. We will checkout react-boilerplate from
+        <a href="https://github.com/andrewjmead/react-course-boilerplate-app" target="_blank">Andrejmead Github</a></p>
+
+        <p>We create in our Github account a new repo and we remove remote origins from andrejmead and then
+          add the new one created in our account.</p>
+
+
+        <div class="sample">
+           <xmp class="code">
+             //Remove origin remote
+             git remote rm origin
+
+             //Add the new one
+             git remote add origin git@github.com:jescacena/reactjs-todoapp.git
+
+             //push to master
+             git push -u origin master
+
+             npm install
+
+             node server.js
+
+             webpack -w
+
+            </xmp>
+        </div>
+
+
+
+        <p>Now we create our main component <strong>TodoApp.jsx</strong>. This time we will not being adding alias to webpack config
+          for every component. There is a configuration, <strong>modulesDirectories</strong>,  we can put in webpack config to atumatically add as alias all the components
+          in <strong>app/components</strong>
+        </p>
+        <p><strong>webpack.config.js</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             ...
+             resolve: {
+               root: __dirname,
+               modulesDirectories : [
+                 'node_modules',
+                 './app/components',
+               ],
+               alias: {
+                 applicationStyles: 'app/styles/app.scss'
+               },
+               extensions: ['', '.js', '.jsx']
+             },
+             ...
+
+            </xmp>
+        </div>
+
+      </section>
+
+
+      <section>
+        <a name="#rendering-list"></a>
+        <h2>Rendering Lists in React (TodoList and Todo)</h2>
+
+        <p>we will be creating two components: Todo and TodoList</p>
+
+        <p>First we will create static or mock data en TodoApp to pass it to TodoList component</p>
+        <p><strong>app/components/TodoApp.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var TodoList = require('TodoList');
+
+             var TodoApp = React.createClass({
+               getInitialState: function() {
+                 return {
+                   todos: [
+                     {
+                       id:1,
+                       text: 'Walk the dog'
+                     },
+                     {
+                       id:2,
+                       text: 'Love the killer'
+                     }
+                   ]
+                 }
+               },
+               render: function() {
+                 var {todos} = this.state;
+                 return (
+                   <div>
+                     <TodoList todos={todos}/>
+                   </div>
+                 );
+               }
+
+             });
+
+             module.exports = TodoApp;
+            </xmp>
+        </div>
+
+        <p>To render a dynamic list , we will create a <strong>renderTodos</strong> method and inside of it , we will use
+        map javascript function to return an array of Todo components</p>
+        <p><strong>app/components/TodoList.jsx</strong></p>
+
+        <div class="sample">
+           <xmp class="code">
+
+              var React = require('react');
+              var Todo = require('Todo');
+
+              var TodoList = React.createClass({
+
+                render: function() {
+                  var {todos} = this.props;
+
+                  var renderTodos = () => {
+                    return todos.map((todo)=> {
+                      return (
+                        <Todo key={todo.id}/>
+                      );
+                    });
+                  };
+
+                  return (
+                    <div>
+                      {renderTodos()}
+                    </div>
+                  );
+                }
+              });
+
+              module.exports = TodoList;
+            </xmp>
+        </div>
+
+        <p>NOTE: When we render multiple similar components in an iteration , React needs
+          to have a <strong>key</strong> attribute so it can keep track of them in a unique form</p>
+
+        <p>To render "text" field , we use the ES6 spread operator to pass all the properties of a "todo" element to Todo Component</p>
+        <p><strong>app/components/TodoList.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            ...
+            <Todo key={todo.id} {...todo}/>
+            ...
+          </xmp>
+        </div>
+        <p><strong>app/components/Todo.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            ...
+            render: function() {
+              var {text} = this.props;
+              return (
+                <div>
+                  {text}
+                </div>
+              );
+            }
+            ...
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="testing-list"></a>
+        <h2>Testing lists components</h2>
+        <p>We want to check the number of Todo components are rendered by TodoList</p>
+        <div class="sample">
+          <xmp class="code">
+            it('should render one Todo component for each Todo item', ()=> {
+              var todos  = [{
+                  id:1,
+                  text:'Do something'
+                },
+                {
+                  id:2,
+                  text:'Check email'
+                }
+              ];
+
+              var todoList = TestUtils.renderIntoDocument(<TodoList todos={todos}/>);
+
+              var todosComponents = TestUtils.scryRenderedComponentsWithType(todoList,Todo);
+
+              expect(todosComponents.length).toBe(todos.length);
+            });
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="addtodo"></a>
+        <h2>AddTodo component</h2>
+        <p>This is a challenge section</p>
+      </section>
+
+      <section>
+        <a name="setting-filter"></a>
+        <h2>Setting up the filter component</h2>
+        <p>This is a challenge section</p>
+        <p>We make the <strong>TodoSearch.jsx</strong> component</p>
+      </section>
+
+      <section>
+        <a name="testing-filter"></a>
+        <h2>Testing the filter component</h2>
+      </section>
+
+
+      <section>
+        <a name="spread"></a>
+        <h2>The Spread operator</h2>
+        <p>With the spread operator you can easily make operations with arrays in order to pass to other functions</p>
+
+        <div class="sample">
+          <xmp class="code">
+            //First example: spread array as arguments of a function
+            function add(a,b) {
+              return a + b;
+            }
+
+            console.log(add(2,3));
+
+            var toAdd = [9,5];
+            console.log(add(...toAdd));
+
+            //SEcond example: combine arrays
+            var groupA = ['Pepe' , 'Paco'];
+            var groupB = ['Angela'];
+
+            var final = [...groupB,3, ...groupA];
+
+            console.log(final);
+
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="wiring-addtodo"></a>
+        <h2>Wiring up AddTodo</h2>
+        <p>We will code <strong>handleAddTodo</strong> method. We will be using the spread operator and also a new library for generating an unique id.</p>
+        <div class="sample">
+          <xmp class="code">
+            npm install node-uuid --save-dev
+          </xmp>
+        </div>
+        <p>The <strong>node-uuid</strong> library generates an universal unique id for each Todos</p>
+        <p><strong>TodoApp.jsx</strong></p>
+
+        <div class="sample">
+          <xmp class="code">
+            var uuid = require('node-uuid');
+            ...
+            handleAddTodo: function(text) {
+              this.setState({
+                todos: [
+                  ...this.state.todos,
+                  {
+                    id:uuid(),
+                    text:text
+                  }
+                ]
+              });
+            },
+          </xmp>
+        </div>
+
+        <p><strong>TodoApp.test.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            it('should add todo to the todos state on handleAddTodo', () => {
+              var todoText = 'test text';
+              var todoApp = TestUtils.renderIntoDocument(<TodoApp/>);
+
+              todoApp.setState({
+                todos: []
+              });
+
+              todoApp.handleAddTodo(todoText);
+
+              expect(todoApp.state.todos[0].text).toBe(todoText);;
+            });
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="toggling"></a>
+        <h2>Toggling Todos</h2>
+        <p>We will add a new field to Todos: completed</p>
+
+        <p><strong>TodoApp.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            handleAddTodo: function(text) {
+              this.setState({
+                todos: [
+                  ...this.state.todos,
+                  {
+                    id:uuid(),
+                    text:text,
+                    completed: false
+                  }
+                ]
+              });
+            },
+
+            ...
+
+            handleToggle: function(id) {
+              var updatedTodos = this.state.todos.map((todo)=>{
+                if(todo.id === id){
+                  todo.completed = !todo.completed;
+                }
+                return todo;
+              });
+
+              this.setState({todos : updatedTodos});
+
+            },
+
+            ...
+
+            <TodoList todos={todos} onToggle={this.handleToggle}/>
+
+          </xmp>
+        </div>
+
+        <p>and passed down a handleToggle handler method from TodoApp to Todo component</p>
+        <p><strong>Todo.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            render: function() {
+              var {text, id, completed} = this.props;
+              return (
+                <div onClick={() => {
+                    this.props.onToggle(id);
+                  }}>
+                  <input type="checkbox" checked={completed}></input>&nbsp;
+                  {text}
+                </div>
+              );
+            }
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="testing-toggling"></a>
+        <h2>Testing toggling todos</h2>
+
+        <p><strong>TodoApp.test.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            it('should toggle completed when handleToggle called', ()=> {
+              var todoApp = TestUtils.renderIntoDocument(<TodoApp/>);
+              todoApp.setState({
+                todos: [ {
+                  id:1,
+                  text:'ddfdfd',
+                  completed:false
+                }]
+              });
+              todoApp.handleToggle(1);
+              expect(todoApp.state.todos[0].completed).toBe(true);;
+            });
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="local-storage"></a>
+        <h2>Storing Todos in local storage</h2>
+        <p>We want to persist data even if user refresh the browser</p>
+
+        <p><strong>Local storage</strong> allows you to store data in your browser</p>
+        <p>From browser console we can play around with <strong>localStorage</strong> object. It has some methods like setItem , getItem or remoteItem</p>
+
+        <p>We will create a separate file <strong>api/TodoAPI.jsx</strong> because my app should be decoupled from the way we persist data.
+        In the future we will be able to switch to another persist platform</p>
+        <div class="sample">
+          <xmp class="code">
+            var $ = require('jquery');
+            module.exports = {
+
+              setTodos: function(todos) {
+                if($.isArray(todos)) {
+                  localStorage.setItem('todos', JSON.stringify(todos));
+                  return todos;
+                }
+              },
+
+              getTodos: function() {
+                var stringTodos = localStorage.getItem('todos');
+                var todos = [];
+                try {
+                  todos = JSON.parse(stringTodos);
+                } catch(e) {
+                  console.log("Error parsing");
+                }
+
+                if($.isArray(todos)) {
+                  return todos;
+                } else {
+                  return [];
+                }
+              }
+            };
+
+          </xmp>
+        </div>
+
+        <p><strong>TodoApp.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            var TodoAPI = require('TodoAPI');
+
+          ...
+          getInitialState: function() {
+            return {
+              showCompleted:false,
+              searchText:"",
+              todos: TodoAPI.getTodos()
+            }
+          },
+          ...
+          //Any time we update the state , we will persist the todos
+          componentDidUpdate : function() {
+            TodoAPI.setTodos(this.state.todos);
+          },
+          ...
+          </xmp>
+        </div>
+
+      </section>
+
+
+      <section>
+        <a name="testing-api"></a>
+        <h2>Testing our Todo API</h2>
+
+        <p><strong>TodoAPI.test.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+            var expect = require('expect');
+
+            var TodoAPI = require('TodoAPI');
+
+            describe('TodoAPI' , () => {
+
+              beforeEach(() => {
+                localStorage.removeItem('todos');
+              });
+
+              it('it should exist', () => {
+                expect(TodoAPI).toExist();
+              });
+
+              describe('setTodos', ()=> {
+
+
+                it('should set valid todos array', ()=> {
+                  var todos = [{
+                    id:23,
+                    text:'ddsffdfs',
+                    completed:false
+                  }];
+
+                  TodoAPI.setTodos(todos);
+
+                  var actualTodos = JSON.parse(localStorage.getItem('todos'));
+
+                  //We dont use toBe because we have different objects
+                  expect(actualTodos).toEqual(todos);
+                });
+
+                it('should set invalid todos array', ()=> {
+                  var todos = {};
+                  TodoAPI.setTodos(todos);
+
+                  var actualTodos = JSON.parse(localStorage.getItem('todos'));
+
+                  //We dont use toBe because we have different objects
+                  expect(actualTodos).toBe(null);
+                });
+
+              });
+
+              describe('getTodos', ()=> {
+                it('should return empty array for bad local storage data', () => {
+                  var actualTodos = TodoAPI.getTodos();
+                  expect(actualTodos).toEqual([]);
+                });
+
+                it('should return todos pn valid array in local storage', ()=> {
+
+                  var todos = [{
+                    id:23,
+                    text:'ddsffdfs',
+                    completed:false
+                  }];
+
+                  localStorage.setItem('todos', JSON.stringify(todos));
+
+                  var actualTodos = TodoAPI.getTodos();
+
+                  expect(actualTodos).toEqual(todos);
+
+                });
+
+              });
+
+            });
+
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="wiringup-search"></a>
+        <h2>Wiring up search</h2>
+
+        <p>First lets filter by completed checkbox. If checkbox is empty display only not-completed. If is true also will show completed ones</p>
+        <p><strong>TodoAPI.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+          ...
+          filterTodos: function(todos,showCompleted,searchText) {
+            //Filter by showCompleted
+            var filteredTodos = todos.filter((todo)=> {
+              return !todo.completed || showCompleted;
+            });
+
+            //Filter by searchText
+
+            //Sort todos with  non-completed first
+
+            return filteredTodos;
+
+          }
+
+          ...
+          </xmp>
+        </div>
+        <p><strong>TodoApp.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+          ...
+          render: function() {
+            var {todos, showCompleted, searchText} = this.state;
+            var filteredTodos = TodoAPI.filterTodos(todos, showCompleted, searchText);
+            return (
+              <div>
+                <TodoSearch onSearch={this.handleSearch}/>
+                <TodoList todos={filteredTodos} onToggle={this.handleToggle}/>
+                <AddTodo onAddTodo={this.handleAddTodo}/>
+              </div>
+            );
+          }
+          ...
+          </xmp>
+        </div>
+
+        <p><strong>TodoAPI.test.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+          ...
+          describe('filterTodos', () => {
+            var todos = [{
+              id:1,
+              text:'jajaja jejeje',
+              completed:true
+            },{
+              id:2,
+              text:'jijijijiji',
+              completed:false
+            },{
+              id:3,
+              text:'JOJOJOJOJOJOJ',
+              completed:true
+            }];
+
+            it('should return all items if showCompleted is true', ()=> {
+              var filterTodos = TodoAPI.filterTodos(todos,true,'');
+              expect(filterTodos.length).toBe(3);
+            });
+            it('should return only non completed if showCompleted is false', ()=> {
+              var filterTodos = TodoAPI.filterTodos(todos,false,'');
+              expect(filterTodos.length).toBe(1);
+            });
+          });
+          ...
+          </xmp>
+        </div>
+
+        <p>Now we are sorting Todos for displaying non completed Todos first. And also we integrate the search feature</p>
+        <p><strong>TodoAPI.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+          ...
+          filterTodos: function(todos,showCompleted,searchText) {
+
+            var filteredTodos;
+
+            //Filter by searchText
+            if(searchText && searchText.length > 0) {
+              filteredTodos = todos.filter((todo)=> {
+                return todo.text.indexOf(searchText) !== -1;
+              });
+            } else {
+              filteredTodos = todos;
+            }
+
+            //Filter by showCompleted
+            filteredTodos = filteredTodos.filter((todo)=> {
+              return !todo.completed || showCompleted;
+            });
+
+            //Sort todos with non-completed first
+            filteredTodos.sort((a,b) => {
+              if(!a.completed && b.completed) {
+                return -1;
+              } else if(a.completed && !b.completed) {
+                return 1;
+              } else {
+                return 0;
+              }
+            });
+
+            return filteredTodos;
+
+          }
+
+          ...
+          </xmp>
+        </div>
+
+        <p><strong>TodoAPI.test.jsx</strong></p>
+        <div class="sample">
+          <xmp class="code">
+          ...
+          it('should sort by completed status', () => {
+            var filterTodos = TodoAPI.filterTodos(todos,true,'');
+            expect(filterTodos[0].completed).toBe(false);
+          });
+
+          it('should return only matches on search', () => {
+            var filterTodos = TodoAPI.filterTodos(todos,true,'black');
+            expect(filterTodos.length).toBe(2);
+          });
+          ...
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="dates"></a>
+        <h2>Dates with Moment</h2>
+        <p><a href="http://momentjs.com">momentjs.com</a></p>
+        <div class="sample">
+          <xmp class="code">
+        npm install moment@2.12.0  --save-dev
+          </xmp>
+        </div>
+        <p>We will use momentjs library to store createdAt date in timestamp format</p>
+        <div class="sample">
+          <xmp class="code">
+        moment().unix()
+          </xmp>
+        </div>
+        <p>and to load it and format it with</p>
+        <div class="sample">
+          <xmp class="code">
+        moment.unix(createdAt).format('MMM Do YYYY @ h:mm a')
+          </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="timestamps"></a>
+        <h2>Adding created at and completed at timestamps</h2>
+        <p>We want to add date of creation to TODO items</p>
+        <p>First of all we need to remove all TODO items in the localStorage, So we go to the browser console
+        and run <strong>'localStorage.removeItem(todos)'</strong> </p>
+        <p>miralo en el github del final de la página , 'esmuuufaci'</p>
+      </section>
+
+      <section>
+        <a name="styling"></a>
+        <h2>Styling Todo App</h2>
+        <p>We are going to add foundation to style our app and also we will add custom styles</p>
+
+        <p>Nothing new in the horizon</p>
+
+      </section>
+
+      <a href="http://polar-sands-93564.herokuapp.com/" target="_blank">LIVE DEMO</a>
+      <br>
+      <a href="https://github.com/jescacena/reactjs-todoapp" target="_blank">Github</a>
+
+    </main>
+
+  </body>
+</html>
