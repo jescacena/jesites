@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS: Redux</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ReactJS:Redux</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Index</h2>
+        <ul>
+          <li><a href="#why">Why Redux</a></li>
+          <li><a href="#install">Installing redux</a></li>
+          <li><a href="#pure">Pure functions</a></li>
+          <li><a href="#creating-getting">Creating a reducer & Getting app state</a></li>
+          <li><a href="#dispatching">Dispatching and handling actions</a></li>
+          <li><a href="#subscribing">Subscribing to changes and debugging</a></li>
+          <li><a href="#actions-add">Redux actions: Add to Arrays</a></li>
+          <li><a href="#actions-removing">Redux actions: removing from arrays</a></li>
+          <li><a href="#working-multiple">Working with multiple reducers</a></li>
+          <li><a href="#creating-actiong">Creating action generators</a></li>
+          <li><a href="#async-actions">Asynchronous actions</a></li>
+          <li><a href="#organizing-actions">Organizing your actions and reducers</a></li>
+        </ul>
+      </section>
+
+
+      <section>
+        <hr>
+        <a href="https://github.com/jescacena/redux-learn" target="_blank">Redux-learn project in github</a>
+        <hr>
+      </section>
+
+
+      <section>
+        <a name="why"></a>
+        <h2>Why Redux</h2>
+        <p>Is a library hard to learn</p>
+        <p>First , <a href="http://redux.js.org/" target="_blank">Redux</a> is a library to help you to <strong>maintain a state</strong></p>
+
+        <p><strong>TodoApp had some state to maintain</strong>: such as search text field ,showCompleted checkbox or the Todo Item list</p>
+
+        <p>We have to write functions in the parent component to manage these pieces of states, such as <strong>handleToggle, handleAddTodo</strong>
+        We need to pass down this functions in the components hierarchy, so this is <strong>not really reusable</strong>, they depend so much of the context of the parent</p>
+
+        <p>With Redux you can keep state managing separated of the rest of the code, and <strong>state it is plain Javascript</strong></p>
+
+        <p>For example for Todo App we could have this redux state:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var reduxState = {
+               searchText: 'Crocodile',
+               showCompleted: false,
+               todos: [{
+                 id:1,
+                 text:'jujuju'
+               }]
+             };
+            </xmp>
+        </div>
+
+        <p>In the Redux philosophy is <strong>read-only</strong>, you can only modify by actions , or by <strong>dispatching actions</strong></p>
+
+        <p>Let suppose we want to update our search text, this is an action in Redux</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var action = {
+               type:'CHANGE_SEARCH_TEXT',
+               text:'someting new'
+             };
+            </xmp>
+        </div>
+
+        <p>and this actions can be dispatched by a number of different components such as TodoSearch , Todo, etc</p>
+
+        <p>Redux is not the only library to maintain state, there is something similar in Flux</p>
+
+        <p>Redux has a great comunity of middleware</p>
+
+      </section>
+
+      <section>
+        <a name="install"></a>
+        <h2>Installing redux</h2>
+
+        <p>First we copy last react boilerplate to start to work.</p>
+        <p>Then we install Redux library</p>
+
+        <div class="sample">
+           <xmp class="code">
+             npm install redux@3.3.1 --save-dev
+            </xmp>
+        </div>
+
+        <p>Then we create a new file for practice Redux , <strong>redux-example.js</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var React = require('react');
+             var ReactDOM = require('react-dom');
+             var {Route, Router, IndexRoute, hashHistory} = require('react-router');
+
+             // Load foundation
+             $(document).foundation();
+
+             // App css
+             require('style!css!sass!applicationStyles')
+
+             ReactDOM.render(
+               <p>Boilerplate 3 Project</p>,
+               document.getElementById('app')
+             );
+
+             require('./redux-example.jsx');
+            </xmp>
+        </div>
+
+        <p><strong>redux-example.js</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var redux = require('redux');
+
+             console.log('Starting redux example');
+            </xmp>
+        </div>
+
+        <p>We check browser console in <strong>localhost:3000</strong> that message of the console.log displays</p>
+      </section>
+
+      <section>
+        <a name="pure"></a>
+        <h2>Pure functions</h2>
+
+        <p>Reducers, as we will see later in the chapter, has to be <strong>pure functions</strong>.
+
+        These functions follow some simple rules:
+        <ul>
+          <li><strong>On the same input they always produce the same output</strong></li>
+          <li><strong>It doesnt modify or read outside variables</strong></li>
+          <li><strong>It can't have any asynchronous invocation , promise , callback , access to databases or similar</strong></li>
+          <li><strong>They are not allowed to modify the parameters passed in</strong> (keep in mind : objects and arrays are passed by reference)</li>
+        </ul>
+        </p>
+
+        <p>Example:</p>
+        <div class="sample">
+           <xmp class="code">
+             function add(a,b) {
+               return a + b;
+             }
+            </xmp>
+        </div>
+
+        <p>Example of not pure functions:</p>
+        <div class="sample">
+           <xmp class="code">
+             //One
+             var a = 3;
+             function add(b) {
+               return a + b;
+             }
+             //Two
+             var result;
+             function add(a,b) {
+               result = a + b;
+               return result;
+             }
+
+             //Three
+             function add(a,b) {
+               return a + b + new Date().getSeconds();
+             }
+
+             //Four
+             function changeProp(obj) {
+               obj.name = 'Laksmi';
+             }
+
+             var res = changeProp({
+               name: 'Indira'
+             });
+
+             console.log(res);
+            </xmp>
+        </div>
+
+        <p>Fourth example we can become in pure in this way:
+          <div class="sample">
+             <xmp class="code">
+               //We return a new object
+               function changeProp(obj) {
+                 return {
+                   ...obj,
+                   name: 'Ruben'
+                 };
+               }
+
+               var startingValue = {
+                 name: 'Indira'
+               };
+               var res = changeProp(startingValue);
+
+               console.log(startingValue);
+               console.log(res);
+             </xmp>
+         </div>
+        </p>
+      </section>
+
+      <section>
+        <a name="creating-getting"></a>
+        <h2>Creating a reducer & Getting app state</h2>
+
+        <p>In Redux state of the app is saved in the <strong>store</strong>.</p>
+
+        <p>We can create a store passing a <strong>reducer</strong> function (it has to be a pure function)
+        and an <strong>action</strong> object</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var reducer = (state = {name:'Anonymous'}, action) => {
+               // state = state | {name:'Anonymous'};
+             };
+             var store = redux.createStore(reducer);
+
+             return state;
+
+           </xmp>
+       </div>
+
+       <p>A reducer function get the current state of the app and the action to be applied , and combines them to create a new state.</p>
+       <p>A reducer function has to follow 2 conditions:
+         <ul>
+           <li>It must have a <strong>default state</strong>: As we see there is a <strong>way in ES6 of define default values</strong></li>
+           <li>It <strong>always returns a state event</strong> if there is no action or the action is not been recognized</li>
+         </ul>
+       </p>
+
+       <p>By now the reducer function is not doing anything.</p>
+
+        <p>To get the current state of the store:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var currentState = store.getState();
+           </xmp>
+       </div>
+
+      </section>
+
+      <section>
+        <a name="dispatching"></a>
+        <h2>Dispatching and handling actions</h2>
+
+        <p>To modify the store we will dispatch <strong>actions</strong></p>
+
+        <p>Action are simple objects. They only must have include a <strong>type</strong> property</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var action = {
+               type:'CHANGE_NAME',
+               name: 'Gran Wyoming'
+             };
+             store.dispatch(action);
+           </xmp>
+       </div>
+
+       <p>We also need to modify our reducer to recognize this action:</p>
+
+       <div class="sample">
+          <xmp class="code">
+            var reducer = (state = {name:'Anonymous'}, action) => {
+              // state = state | {name:'Anonymous'};
+              console.log('New action', action);
+              switch(action.type) {
+                case 'CHANGE_NAME':
+                  return {
+                    ...state,
+                    name: action.name
+                  };
+                default:
+                  return state;
+              }
+            };
+          </xmp>
+      </div>
+
+
+      </section>
+
+
+      <section>
+            <a name="subscribing"></a>
+            <h2>Subscribing to changes and debugging</h2>
+
+            <p>There is a way of checking for changes, it is by <strong>subscribe</strong> method</p>
+
+            <div class="sample">
+               <xmp class="code">
+                 var store = redux.createStore(reducer);
+
+                 //Subscribe to changes
+                 store.subscribe(()=> {
+                  var state = store.getState();
+
+                  console.log('Name is ' , state,name);
+                 });
+
+                 var currentState = store.getState();
+
+
+                 store.dispatch({
+                   type: 'CHANGE_NAME',
+                   name: 'Gran Wyoming'
+                 });
+
+                 store.dispatch({
+                   type: 'CHANGE_NAME',
+                   name: 'Elisa Beni'
+                 });
+               </xmp>
+           </div>
+
+           <p>Note , now we don't need to make console.logs to check the value of the store</p>
+
+           <p>One cool thing is we can also <strong>unsubscribe</strong> of the changes. It is by saving the returned value of the subscrime method:</p>
+
+           <div class="sample">
+              <xmp class="code">
+                //Subscribe to changes
+                var unsubscribe = store.subscribe(()=> {
+                 var state = store.getState();
+
+                 console.log('Name is ' , state,name);
+                });
+
+                var currentState = store.getState();
+
+
+                store.dispatch({
+                  type: 'CHANGE_NAME',
+                  name: 'Gran Wyoming'
+                });
+
+                unsubscribe();
+
+                //This change is not taking it
+                store.dispatch({
+                  type: 'CHANGE_NAME',
+                  name: 'Elisa Beni'
+                });
+              </xmp>
+          </div>
+
+          <p>Lets see we can track action back and forth using
+            <a href="https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=es" target="_blank">Redux DevTools Extension</a></p>
+
+            <p>By default this tools is not showing anything , we need to specify a store. This is made adding this middleware to createStore method:</p>
+
+            <div class="sample">
+               <xmp class="code">
+                 var store = redux.createStore(reducer,  redux.compose(
+                   window.devToolsExtension ? window.devToolsExtension() : f => f
+                 ));
+               </xmp>
+           </div>
+
+           <p>Note: f => f is an abbreviated way of coding:</p>
+           <div class="sample">
+              <xmp class="code">
+                var store = redux.createStore(reducer,  redux.compose(
+                  window.devToolsExtension ? window.devToolsExtension() : (f) => { return f;}
+                ));
+              </xmp>
+          </div>
+
+          <p>To visualize how to sweep action with the Redux DevTools, we decide to render name in app DOM object:</p>
+          <div class="sample">
+             <xmp class="code">
+               //Subscribe to changes
+               var unsubscribe = store.subscribe(()=> {
+                var state = store.getState();
+
+                console.log('Name is ' , state.name);
+
+                document.getElementById('app').innerHTML = state.name;
+               });
+             </xmp>
+         </div>
+
+         <p>and in <strong>app.jsx</strong> we comment out </p>
+
+         <div class="sample">
+            <xmp class="code">
+              // ReactDOM.render(
+              //   <p>Boilerplate 3 Project</p>,
+              //   document.getElementById('app')
+              // );
+            </xmp>
+        </div>
+    </section>
+
+
+    <section>
+      <a name="actions-add"></a>
+      <h2>Redux actions: Add to Arrays</h2>
+
+      <p>As an example of managing arrays in the store, we will manage a hobbies information</p>
+
+      <p>We create a default hobby array:</p>
+      <div class="sample">
+         <xmp class="code">
+           var stateDefault = {
+             name:'Anonymous',
+             hobbies:[]
+           };
+
+           ...
+           var reducer = (state = stateDefault, action) => {
+             ...
+       </xmp>
+     </div>
+
+     <p>We want to dispatch these type of actions:</p>
+     <div class="sample">
+        <xmp class="code">
+          store.dispatch({
+            type: 'ADD_HOBBY',
+            hobby: 'running'
+          });
+      </xmp>
+    </div>
+
+    <p>So we update our reducer method:</p>
+    <div class="sample">
+       <xmp class="code">
+         var nextHobbyId = 1;
+         var reducer = (state = stateDefault, action) => {
+           // state = state | {name:'Anonymous'};
+           console.log('New action', action);
+           switch(action.type) {
+             case 'CHANGE_NAME':
+               return {
+                 ...state,
+                 name: action.name
+               };
+             case 'ADD_HOBBY':
+               return {
+                 ...state,
+                 hobbies: [
+                   ...state.hobbies,
+                   {
+                     id: nextHobbyId++,
+                     hobby: action.hobby
+                   }
+                 ]
+               }
+             default:
+               return state;
+           }
+         };
+     </xmp>
+   </div>
+
+   <p>Note we use ES6 spread operator again to return a new object and <strong>don't modify state passed in</strong> (pure functions rule).</p>
+
+
+    </section>
+
+  <section>
+    <a namd="actions-removing"></a>
+    <h2>Redux actions: removing from arrays</h2>
+
+    <p>We use <strong>filter</strong> method for arrays for implement 'REMOVE_HOBBY' action</p>
+    <div class="sample">
+       <xmp class="code">
+         ...
+         case 'REMOVE_HOBBY':
+         return {
+           ...state,
+           // hobbies: state.hobbies.filter(function(hobby){ return hobby.id !== action.id; })
+           hobbies: state.hobbies.filter((hobby) => hobby.id !== action.id)
+         }
+         ...
+
+         store.dispatch({
+           type: 'ADD_HOBBY',
+           hobby: 'walking'
+         });
+
+         store.dispatch({
+           type: 'REMOVE_HOBBY',
+           id: 2
+         });
+
+     </xmp>
+   </div>
+
+  </section>
+
+  <section>
+    <a name="working-multiple">Working with multiple reducers</a>
+    <h2>Working with multiple reducers</h2>
+
+    <p>Now we want to create reducers that handle only specific parts of the state (or the store)</p>
+
+    <p>We use <strong>redux.combineReducers</strong> to combine individual reducers</p>
+
+    <div class="sample">
+       <xmp class="code">
+         ...
+         var nameReducer = (state = 'Anonymous' ,action) => {
+           switch(action.type) {
+             case 'CHANGE_NAME':
+               return action.name;
+             default:
+               return state;
+
+           }
+
+         };
+
+         var hobbiesReducer = (state = [] , action) => {
+           switch(action.type) {
+             case 'ADD_HOBBY':
+               return  [
+                   ...state,
+                   {
+                     id: nextHobbyId++,
+                     hobby: action.hobby
+                   }
+                 ];
+
+             case 'REMOVE_HOBBY':
+               return state.filter((hobby) => hobby.id !== action.id)
+
+             default:
+               return state;
+
+           }
+         };
+
+         var reducer = redux.combineReducers({
+             name: nameReducer,
+             hobbies: hobbiesReducer
+         });
+
+         ...
+
+     </xmp>
+   </div>
+
+   <p>Now individual reducers dont receive in state the whole state object , just the part involved.
+   <br>
+   So they have to return only that part as well.
+    </p>
+  </section>
+
+  <section>
+    <a name="creating-actiong"></a>
+    <h2>Creating action generators</h2>
+
+    <p>Action generator make easy create and dispatch actions , specially as your app is more complicated and handling async calls.</p>
+
+    <p><strong>Actions generators</strong> are simple functions that returns objects. <strong>type</strong> property is mandatory</p>
+
+    <div class="sample">
+       <xmp class="code">
+        ...
+
+        var changeName = (name) => {
+
+          return {
+            type: 'CHANGE_NAME',
+            name:name
+          }
+
+        };
+
+        ...
+
+     </xmp>
+   </div>
+
+   <p>We can simplify it using ES6 syntax in the name property</p>
+    <div class="sample">
+       <xmp class="code">
+        ...
+
+        var changeName = (name) => {
+
+          return {
+            type: 'CHANGE_NAME',
+            name
+          }
+
+        };
+
+        ...
+
+     </xmp>
+   </div>
+
+   <p>and we invoke it:</p>
+
+   <div class="sample">
+      <xmp class="code">
+       ...
+       store.dispatch(changeName('Gran Wyoming'));
+       ...
+
+    </xmp>
+  </div>
+  </section>
+
+  <section>
+    <a name="async-actions"></a>
+    <h2>Asynchronous actions</h2>
+
+    <p>Now we want to make more complex actions, for example calling an async service: an API: <a href="http://ipinfo.io/">ipinfo.io</a>
+      to resolve your ip and giving us your location in (latitude, longitude). Then we will build a link to that location in Google maps</p>
+
+      <div class="sample">
+         <xmp class="code">
+          ...
+          var stateDefault = {
+            name:'Anonymous',
+            hobbies:[],
+            map:{}
+          };
+
+
+          //Map reducers and action generators
+          var mapReducer = (state = {isFetching : false, url: undefined} ,action) => {
+
+            switch(action.type) {
+
+              case 'START_LOCATION_FETCH':
+                return {
+                  isFetching:true,
+                  url: undefined
+                }
+
+              case 'COMPLETE_LOCATION_FETCH':
+                  return {
+                    isFetching:false,
+                    url: action.url
+                  }
+              default:
+              return state;
+
+            }
+          };
+
+          var startLocationFetch = () => {
+            return {
+              type:'START_LOCATION_FETCH'
+            }
+          };
+
+          var completeLocationFetch = (url) => {
+            return {
+              type:'COMPLETE_LOCATION_FETCH',
+              url
+            }
+          };
+
+          var fetchLocation = () => {
+            store.dispatch(startLocationFetch());
+
+            axios.get('http://ipinfo.io').then(function(res) {
+              var loc = res.data.loc;
+              var baseUrl = 'http://maps.google.com/maps?q=';
+              store.dispatch(completeLocationFetch(baseUrl + loc));
+            });
+          };
+          ...
+
+          //Subscribe to changes
+          var unsubscribe = store.subscribe(()=> {
+           var state = store.getState();
+
+           console.log('State object is ' , state);
+           // console.log('Hobbies are ' , state.hobbies);
+
+           // document.getElementById('app').innerHTML = state.name;
+
+           if(state.map.isFetching) {
+             document.getElementById('app').innerHTML = 'Loading...';
+           } else if(state.map.url) {
+             document.getElementById('app').innerHTML = '<a href="'+state.map.url+'" target="_blank">View your location</a>';
+
+           }
+          });
+
+          ....
+
+          fetchLocation();
+
+       </xmp>
+     </div>
+
+     <p>There are two presentation variables we need: isFetching (show Loading) and url (to link to google maps in fetching completed)</p>
+  </section>
+
+
+  <section>
+    <a name="organizing-actions"></a>
+    <h2>Organizing your actions and reducers</h2>
+
+    <p>We will create one separate file to actions (actions/index.js), another to reducers(reducers/index.js) and another to configure store(store/configureStore.js)</p>
+
+    <p>Files will be more testeable.</p>
+
+    <p>In <strong>actions/index.js</strong> we need to export the actions. Traditional way is:</p>
+
+    <div class="sample">
+       <xmp class="code">
+        ...
+        var changeName = (name) => {
+
+          return {
+            type: 'CHANGE_NAME',
+            name
+          }
+
+        };
+
+        module.exports = {
+          changeName:changeName
+        }
+      ...
+
+     </xmp>
+   </div>
+
+   <p>But with ES6 there is a easier way to do it using <strong>export</strong> as prefix of what you want to export</p>
+    <div class="sample">
+       <xmp class="code">
+        ...
+        export var changeName = (name) => {
+
+          return {
+            type: 'CHANGE_NAME',
+            name
+          }
+
+        };
+
+      ...
+
+     </xmp>
+   </div>
+
+   <p><strong>store/configureStore.js</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var redux = require('redux');
+         var {nameReducer, hobbiesReducer, mapReducer} = require('./../reducers/index.js');
+
+         export var configure = () => {
+           var reducer = redux.combineReducers({
+               name: nameReducer,
+               hobbies: hobbiesReducer,
+               map: mapReducer
+           });
+
+           var store = redux.createStore(reducer,  redux.compose(
+             window.devToolsExtension ? window.devToolsExtension() : f => f
+           ));
+
+           return store;
+         };
+     </xmp>
+   </div>
+   <p><strong>./redux-example.js</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         ...
+         var actions = require('./actions/index');
+         var store = require('./store/configureStore').configure();
+
+         ...
+     </xmp>
+   </div>
+
+   <p>fetchLocation action is special because it dispatch its own action so in <strong>actions/index.js</strong> we have to reference the store. To resolve this problem there is a library
+   </p>
+
+   <div class="sample">
+      <xmp class="code">
+        npm install redux-thunk@2.0.1 --save-dev
+      </xmp>
+    </div>
+
+    <p>This library teach Redux how to work with actions that return functions instead of objects (the case of fetchLocation)</p>
+
+    <p>We need to add this piece of middleware in <strong>configureStore</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var thunk = require('redux-thunk').default;
+         ...
+         var store = redux.createStore(reducer,  redux.compose(
+           redux.applyMiddleware(thunk);
+           window.devToolsExtension ? window.devToolsExtension() : f => f
+         ));
+        ...
+       </xmp>
+     </div>
+
+    <p><strong>actions/index.js</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         ...
+         export var fetchLocation = () => {
+
+           return (dispatch, getState) => {
+               dispatch(startLocationFetch());
+
+               axios.get('http://ipinfo.io').then(function(res) {
+                 var loc = res.data.loc;
+                 var baseUrl = 'http://maps.google.com/maps?q=';
+                 dispatch(completeLocationFetch(baseUrl + loc));
+               });
+
+           };
+         };
+        ...
+       </xmp>
+     </div>
+    <p><strong>./redux-example.js</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         ...
+         store.dispatch(actions.fetchLocation());
+        ...
+       </xmp>
+     </div>
+
+  </section>
+
+    </main>
+
+  </body>
+</html>

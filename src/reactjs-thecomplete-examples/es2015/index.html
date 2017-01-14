@@ -29,12 +29,81 @@
 
       <section>
         <ul>
+          <li><a href="#let-const">Let/Const</a></li>
           <li><a href="#importing">Importing in ES6</a></li>
           <li><a href="#arrow">Arrow functions</a></li>
           <li><a href="#spread">Spread operator</a></li>
           <li><a href="#promises">ES6 Promises</a></li>
+          <li><a href="#default-parameters">Default parameters</a></li>
+          <li><a href="#rest-parameters">Rest parameters</a></li>
+          <li><a href="#name-parameters">Named parameters</a></li>
+          <li><a href="#object-literal">Object Literal Property Value Shorthand</a></li>
         </ul>
       </section>
+
+      <section>
+        <a name="let-const"></a>
+        <h2>Let/Const</h2>
+
+        <p>Besides var, we now have access to two new identifiers for storing values —let and const.
+          Unlike var, <strong>let and const statements are not hoisted</strong> to the top of their enclosing scope.
+An example of using var:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             var snack = 'Meow Mix';
+
+             function getFood(food) {
+                 if (food) {
+                     var snack = 'Friskies';
+                     return snack;
+                 }
+                 return snack;
+             }
+
+             getFood(false); // undefined
+          </xmp>
+        </div>
+
+        <p>However, observe what happens when we replace var using let:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             let snack = 'Meow Mix';
+
+             function getFood(food) {
+                 if (food) {
+                     let snack = 'Friskies';
+                     return snack;
+                 }
+                 return snack;
+             }
+
+             getFood(false); // 'Meow Mix'
+          </xmp>
+        </div>
+
+        <p>This change in behavior highlights that we need to be careful when refactoring
+          legacy code which uses var. Blindly replacing instances of var with let may lead to unexpected behavior.</p>
+
+        <p>Note: <strong>let and const are block scoped.</strong> Therefore, referencing block-scoped identifiers before
+          they are defined will produce a ReferenceError.</p>
+
+          <div class="sample">
+             <xmp class="code">
+               console.log(x); // ReferenceError: x is not defined
+
+               let x = 'hi';
+            </xmp>
+          </div>
+
+          <p><strong>Best Practice</strong>: Leave var declarations inside of legacy code to denote that it needs to be carefully refactored.
+            When working on a new codebase,
+            use <strong>let for variables that will change their value over time</strong>,
+            and <strong>const for variables which cannot be reassigned</strong>.</p>
+
+      </section>
+
       <section>
         <a name="importing"></a>
         <h2>Importing in ES6</h2>
@@ -343,6 +412,170 @@
         </div>
 
 
+      </section>
+
+
+      <section>
+        <a name="default-parameters"></a>
+        <h2>Default parameters</h2>
+
+        <p>In ES5, we had varying ways to handle functions which <strong>needed default values</strong>,
+          <strong>indefinite arguments</strong>,
+          and <strong>named parameters</strong>. With ES6, we can accomplish all of this and more using more concise syntax.</p>
+
+          <div class="sample">
+             <xmp class="code">
+               function addTwoNumbers(x, y) {
+                   x = x || 0;
+                   y = y || 0;
+                   return x + y;
+               }
+              </xmp>
+          </div>
+
+          <p>In ES6, we can simply supply default values for parameters in a function:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               function addTwoNumbers(x=0, y=0) {
+                   return x + y;
+               }
+              </xmp>
+          </div>
+          <div class="sample">
+             <xmp class="code">
+               addTwoNumbers(2, 4); // 6
+               addTwoNumbers(2); // 2
+               addTwoNumbers(); // 0
+              </xmp>
+          </div>
+
+
+      </section>
+
+      <section>
+        <a name="rest-parameters"></a>
+        <h2>Rest parameters</h2>
+
+        <p>In ES5, we handled an indefinite number of arguments like so:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function logArguments() {
+                 for (var i=0; i < arguments.length; i++) {
+                     console.log(arguments[i]);
+                 }
+             }
+            </xmp>
+        </div>
+
+        <p>Using the <strong>rest operator</strong>, we can pass in an indefinite amount of arguments:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function logArguments(...args) {
+                 for (let arg of args) {
+                     console.log(arg);
+                 }
+             }
+            </xmp>
+        </div>
+      </section>
+
+      <section>
+        <a name="name-parameters"></a>
+        <h2>Named parameters</h2>
+
+        <p>One of the patterns in ES5 to handle named parameters was to use the options object pattern,
+          adopted from jQuery.</p>
+        <div class="sample">
+           <xmp class="code">
+             function initializeCanvas(options) {
+                 var height = options.height || 600;
+                 var width  = options.width  || 400;
+                 var lineStroke = options.lineStroke || 'black';
+             }
+            </xmp>
+        </div>
+
+        <p>We can achieve the same functionality using <strong>destructuring</strong> as a formal parameter to a function:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function initializeCanvas(
+                 { height=600, width=400, lineStroke='black'}) {
+                     // Use variables height, width, lineStroke here
+                 }
+           </xmp>
+        </div>
+
+        <p>If we want to make the entire value optional, we can do so by destructuring an empty object:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function initializeCanvas(
+                 { height=600, width=400, lineStroke='black'} = {}) {
+                     // ...
+                 }
+          </xmp>
+        </div>
+
+      </section>
+
+      <section>
+        <a name="object-literal"></a>
+        <h2>Object Literal Property Value Shorthand</h2>
+
+        <p>Constructing an object using the literal syntax is something that is very familiar
+          to every JavaScript developer, quite likely because this reminds everyone of JSON.
+          While every object property needs to be either a key-value pair or getter/setter,
+          this may change in the near future. Another syntactic sugar in the upcoming ECMAScript 6
+          is the object literal property value shorthand.Consider the following ECMAScript 5 fragment:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               function createMonster(name, power) {
+                 return { type: 'Monster', name: name, power: power };
+               }
+               function createWitch(name) {
+                 return { type: 'Witch', name: name };
+               }
+            </xmp>
+          </div>
+
+          <p>With the new shorthand form, this can be rewritten as the following code:</p>
+
+
+          <div class="sample">
+             <xmp class="code">
+               function createMonster(name, power) {
+                 return { type: 'Monster', name, power };
+               }
+               function createWitch(name) {
+                 return { type: 'Witch', name };
+               }
+            </xmp>
+          </div>
+
+          <p>Addendum. While the literal shorthand is useful on its own, in many cases it would be more frequently encountered as it is combined
+            with object pattern (see my previous post on ECMAScript 6 destructuring). Thus, the following code fragment:</p>
+
+            <div class="sample">
+               <xmp class="code">
+                 books.forEach(function ({title: title, author: author}) {
+                   console.log(title, 'is written by', author);
+                 })
+              </xmp>
+            </div>
+
+            <p>turns into something like this one:</p>
+            <div class="sample">
+               <xmp class="code">
+                 books.forEach(function ({title, author}) {
+                   console.log(title, 'is written by', author);
+                 });
+               </xmp>
+            </div>
       </section>
 
     </main>

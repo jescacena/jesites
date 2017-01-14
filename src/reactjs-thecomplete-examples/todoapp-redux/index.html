@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ReactJS : Todo App with Redux</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ReactJS : Todo App with Redux</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Table of contents</h2>
+        <ul>
+          <li><a href="#creating-testing">Creating and Testing actions</a></li>
+          <li><a href="#todo-searchtext">Todo: SearchText and show completed reducers</a></li>
+          <li><a href="#todo-todos-reducer">Todo: Todos Reducer</a></li>
+          <li><a href="#todo-setting-store">Todo: Setting up the redux store</a></li>
+          <li><a href="#todo-react-redux">Todo: React-Redux: provider and connect</a></li>
+          <li><a href="#todo-testing-reduxed">Testing Reduxed components</a></li>
+          <li><a href="#refactoring-addtodo">Refactoring AddTodo</a></li>
+          <li><a href="#refactoring-todosearch">Refactoring TodoSearch</a></li>
+          <li><a href="#redux-localstorage">Setting up local storage with Redux</a></li>
+        </ul>
+      </section>
+
+
+    <section>
+      <hr>
+      <a href="https://github.com/jescacena/reactjs-redux-todoapp" target="_blank">Reactjs-redux-todoapp project in github</a>
+      <br>
+      <br>
+      <a href="http://boiling-refuge-36775.herokuapp.com/">http://boiling-refuge-36775.herokuapp.com/</a>
+      <hr>
+    </section>
+
+  <section>
+    <a name="creating-testing"></a>
+    <h2>Creating and Testing actions</h2>
+
+    <p>We are going to start to <strong>integrate ReactJs and Redux </strong>in the Todo App</p>
+
+    <p>As we remember our target is avoid passing down event handlers in the component hierarchy.</p>
+    <p>
+    In the TODO app we identify four actions:
+      <ul>
+        <li>Update search text</li>
+        <li>Toggle show completed checkbox</li>
+        <li>Mark todo item as completed</li>
+        <li>Adding todo item</li>
+      </ul>
+    </p>
+
+    <p>First we checkout TodoApp in reactjs from the github repo then create <strong>actions/actions.jsx</strong> to
+    include our action generators. Lets start with 'update search text action': </p>
+
+    <div class="sample">
+       <xmp class="code">
+         export var setSearchText = (searchText) => {
+           return {
+             type: 'SET_SEARCH_TEXT',
+             searchText
+           };
+         };
+        </xmp>
+    </div>
+
+    <p>and we create an alias in <strong>webpack config</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         alias: {
+           applicationStyles: 'app/styles/app.scss',
+           actions: 'app/actions/actions.jsx'
+         },
+        </xmp>
+    </div>
+    <p>and we create a test file for this action generator in <strong>tests/actions/actions.test.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var expect = require('expect');
+         var actions = require('actions');
+
+         describe('actions', () => {
+           it('should generate search text action', ()=> {
+             var action = {
+               type: 'SET_SEARCH_TEXT',
+               searchText: 'Some search text'
+             };
+
+             var res = actions.setSearchText(action.searchText);
+
+             expect(res).toEqual(action);
+           });
+         });
+        </xmp>
+    </div>
+
+    <p>we do the same for the rest of the actions and their unit tests</p>
+
+    <p>Note we dont use Redux yet , all code is plain ES6 javascript</p>
+
+  </section>
+
+
+  <section>
+    <a name="todo-searchtext"></a>
+    <h2>Todo: SearchText and show completed reducers</h2>
+    <p>As we did with the actions we create <strong>reducers/reducers.jsx</strong>:</p>
+
+    <div class="sample">
+       <xmp class="code">
+         export var searchTextReducer = (state = '', action) => {
+           switch(action.type) {
+
+             case 'SET_SEARCH_TEXT':
+               return action.searchText;
+             default:
+               return state;
+           }
+         };
+
+        </xmp>
+    </div>
+
+    <p>And the alia in webpack.config.js</p>
+    <p>and the test file associated: <strong>tests/reducers/reducers.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var expect = require('expect');
+         // var actions = require('actions');
+         var reducers = require('reducers');
+
+         describe('reducers', ()=>{
+           describe('searchTextReducer',()=>{
+
+             it('should set searchText',()=>{
+               var action = {
+                 type:'SET_SEARCH_TEXT',
+                 searchText: 'dog'
+               };
+
+               var res = reducers.searchTextReducer('',action);
+
+               expect(res).toEqual(action.searchText);
+             });
+           });
+         });
+
+
+        </xmp>
+    </div>
+
+    <p>Here we will install a new library, <strong>deep-freeze-strict</strong> to assure variables passed
+      to reducers are not modified</p>
+    <div class="sample">
+       <xmp class="code">
+         npm install --save-dev deep-freeze-strcit
+        </xmp>
+    </div>
+
+    <p><strong>tests/reducers/reducers.test.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var df = require('deep-freeze-strict');
+         ...
+         var res = reducers.searchTextReducer(df(''),df(action));
+         ...
+         var res = reducers.showCompletedReducer(df(true),df(action));
+       </xmp>
+    </div>
+    <p>if any of the parameters passed in to reducers is modifed then test will fail. For example:</p>
+
+    <div class="sample">
+       <xmp class="code">
+         export var searchTextReducer = (state = '', action) => {
+
+           action.something = 2;
+           switch(action.type) {
+
+             case 'SET_SEARCH_TEXT':
+               return action.searchText;
+             default:
+               return state;
+           }
+         };
+       </xmp>
+    </div>
+
+
+  </section>
+
+  <section>
+    <a name="todo-todos-reducer"></a>
+    <h2>Todo: Todos Reducer</h2>
+    <p><strong>reducers/reducers.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         export var addTodoReducer = (state=[], action) => {
+
+           switch (action.type) {
+             case 'ADD_TODO':
+               return [
+                 ...state,
+                 {
+                   id:uuid(),
+                   text:action.text,
+                   completed: false,
+                   createdAt: moment().unix()
+                 }
+               ]
+               break;
+             default:
+               return state;
+
+           }
+
+         };
+
+         export var toggleTodoReducer = (state=[], action) => {
+           switch (action.type) {
+             case 'TOGGLE_TODO':
+               return state.map((todo)=> {
+                 if(todo.id === action.id){
+                   var nextCompleted = !todo.completed;
+
+                   return {
+                     ...todo,
+                     completed: nextCompleted,
+                     completedAt: moment().unix()
+                   }
+                 } else {
+                   return todo;
+                 }
+
+               });
+               break;
+             default:
+               return state;
+
+           }
+         };
+       </xmp>
+    </div>
+    <p><strong>test/reducers/reducers.test.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         describe('addTodoReducer',()=>{
+           it('should add todo',()=>{
+             var action = {
+               type:'ADD_TODO',
+               text:'running'
+             };
+
+             var res = reducers.addTodoReducer(df([]),df(action));
+
+             expect(res[0].text).toEqual(action.text);
+           });
+         });
+
+         describe('toggleTodoReducer',()=>{
+           it('should toggle todo',()=>{
+
+             var todos = [
+               {
+                 id:1,
+                 completed:false
+               }
+             ];
+             var action = {
+               type:'TOGGLE_TODO',
+               id:1
+             };
+
+             var res = reducers.toggleTodoReducer(df(todos),df(action));
+
+             expect(res[0].completed).toEqual(!todos[0].completed);
+           });
+         });
+       </xmp>
+    </div>
+
+  </section>
+
+  <section>
+    <a name="todo-setting-store"></a>
+    <h2>Todo: Setting up the redux store</h2>
+
+    <p>Lets install <strong>redux</strong> package</p>
+    <div class="sample">
+       <xmp class="code">
+        npm install --save-dev redux@3.3.1
+      </xmp>
+    </div>
+    <p>We choose to install this dependency as 'development' (--save-dev)
+      because we compile the bundle locally and then upload to heroku</p>
+
+    <p>We create a place for our store: <strong>./store/configureStore.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+
+         var redux = require('redux');
+
+         var {searchTextReducer, showCompletedReducer , todosReducer} = require('reducers');
+
+         export var configure = () => {
+           var reducer = redux.combineReducers({
+             searchText: searchTextReducer,
+             showCompleted: showCompletedReducer,
+             todos: todosReducer
+           });
+
+           var store = redux.createStore(reducer , redux.compose(
+             window.devToolsExtension ?  window.devToolsExtension() : f => f
+           ));
+
+         };
+
+      </xmp>
+    </div>
+
+    <p>alias in <strong>webpack.config.js</strong></p>
+    <div class="sample">
+       <xmp class="code">
+      alias: {
+        applicationStyles: 'app/styles/app.scss',
+        actions: 'app/actions/actions.jsx',
+        reducers: 'app/reducers/reducers.jsx',
+        configureStore: 'app/store/configureStore.jsx'
+      },
+      </xmp>
+    </div>
+
+    <p>We load redux in the main reactjs file: <strong>app.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         ...
+         var actions = require('redux');
+         var store = require('configureStore').configure();
+
+         store.subscribe(() => {
+           console.log('New state', store.getState());
+         });
+
+         store.dispatch(actions.addTodo('Recoge la colada'));
+         store.dispatch(actions.setSearchText('jajaja jijiji'));
+         store.dispatch(actions.toggleShowCompleted());
+         ...
+      </xmp>
+    </div>
+    <p>We first check store is working by dispatching some actions</p>
+
+  </section>
+
+  <section>
+    <a name="todo-react-redux"></a>
+    <h2>Todo: React-Redux: provider and connect</h2>
+
+    <p>In this section we want to wire up the components with the store.</p>
+
+    <p>Lets first install <strong>react-redux</strong> library that connects react and redux</p>
+    <div class="sample">
+       <xmp class="code">
+         npm install --save-dev react-redux@4.4.1
+      </xmp>
+    </div>
+
+    <p>First lets declare a <strong>react-redux provider</strong> so all components can access to the store ,
+      in file <strong>app.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var {Provider} = require('react-redux');
+         ...
+
+         ReactDOM.render(
+           <Provider store = {store}>
+             <TodoApp/>
+           </Provider>,
+           document.getElementById('app')
+         );
+      </xmp>
+    </div>
+
+    <p>The target is each component can dispatch actions on their own.</p>
+
+    <p>In <strong>TodoApp.jsx</strong> we remove <strong>handleToggle</strong> method and in the render method:</p>
+
+    <div class="sample">
+       <xmp class="code">
+         <TodoList todos={filteredTodos} onToggle={this.handleToggle}/>
+      </xmp>
+    </div>
+
+    can be replaced for:
+
+    <div class="sample">
+       <xmp class="code">
+         <TodoList />
+      </xmp>
+    </div>
+
+    <p>In <strong>TodoList.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var {connect} = require('react-redux');
+         ...
+         <Todo key={todo.id} {...todo}/>
+         ...
+         module.exports = connect(
+           (state) => {
+             return {
+               todos: state.todos
+             };
+           }
+         )(TodoList);
+      </xmp>
+    </div>
+
+    <p>As we are not passing down from TodoApp the todos array, with <strong>connect</strong> in module.exports
+      we say the component to get todos array from state.
+    Then the component can get todos from <strong>props</strong> in the same way as before.</p>
+
+    <p>In <strong>Todo.jsx</strong> we need to dispatch actions on click events.</p>
+
+    <div class="sample">
+       <xmp class="code">
+         var {connect} = require('react-redux');
+         var actions = require('actions');
+
+         ...
+         var {text, id, completed, createdAt,completedAt, dispatch} = this.props;
+         ...
+         return (
+           <div className={todoClassName} onClick={() => {
+               // this.props.onToggle(id);
+               dispatch(actions.toggleTodo(id));
+             }}>
+             <div>
+               <p><input type="checkbox" checked={completed}></input>&nbsp;{text}</p>
+             </div>
+
+             <div>
+               <p className="todo__subtext">{renderCreatedDate()}</p>
+               <p className="todo__subtext">{renderCompletedDate()}</p>
+             </div>
+
+           </div>
+         );
+         ...
+         module.exports = connect()(Todo);
+
+      </xmp>
+    </div>
+
+    <p>in this point we can run the app and see the example todos are being rendered</p>
+  </section>
+
+
+  <section>
+    <a name="todo-testing-reduxed">Testing Reduxed components</a>
+    <h2>Testing Reduxed components</h2>
+
+    <p>As we fundamentally change some components , some of our tests are failing</p>
+
+    <p>Let start with the error Todo --> 'should call onToggle prop with id on click'. Obviously
+      we dont have handleTogle method as before</p>
+
+    <p>We need to make some changes in the way we export inside the components. We will need to
+    export the <strong>redux component (connected component)</strong> and the <strong>original react components</strong></p>
+
+    <p>So in <strong>Todo.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+          ...
+          export var Todo = React.createClass({
+         ...
+         <Todo key={todo.id} {...todo}/>
+         ...
+         export default connect()(Todo);
+
+      </xmp>
+    </div>
+
+    <p>we remove the module.exports line.</p>
+    <p><strong>default</strong> in export represents the original react component. And <strong>connect()(Todo)</strong> is the redux connected component (connected to a store)</p>
+
+    <p>and in <strong>Todo.test.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+          ...
+          var {Todo} = require('Todo');
+         ...
+         it('should dispatch TOGGLE_TODO action on click', ()=>{
+           ...
+         var todo = TestUtils.renderIntoDocument(<Todo {...todoData} dispatch={spy}/>);
+         ...
+         expect(spy).toHaveBeenCalledWith({
+           type:'TOGGLE_TODO',
+           id: todoData.id
+         });
+      </xmp>
+    </div>
+
+    <p>we need to get the Todo reference by using ES6 destructuring.</p>
+    <p>we apply spy to dispatch and assert for the action dispatched </p>
+
+    <p>Lets continue with <strong>TodoApp component</strong></p>
+    <p>in <strong>TodoApp.test.jsx</strong> we can remove all old tests.
+      All we want to check is TodoList component is rendered</p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         var ReactDOM = require('react-dom');
+         var expect = require('expect');
+         var $ = require('jQuery');
+         var TestUtils = require('react-addons-test-utils');
+         var {Provider} = require('react-redux');
+
+
+         var configureStore = require('configureStore');
+         var TodoApp = require('TodoApp');
+         var TodoList = require('TodoList');
+
+         describe('TodoApp' , () => {
+           it('it should exist', () => {
+             expect(TodoApp).toExist();
+           });
+
+           it('should render TodoList', () => {
+             var store = configureStore.configure();
+
+             var provider = TestUtils.renderIntoDocument(
+               <Provider store={store}>
+                 <TodoApp/>
+               </Provider>
+             );
+
+             var todoApp = TestUtils.scryRenderedComponentsWithType(provider, TodoApp)[0];
+             var todoList = TestUtils.scryRenderedComponentsWithType(todoApp, TodoList);
+
+             expect(todoList.length).toEqual(1);
+
+           });
+         });
+
+      </xmp>
+    </div>
+
+    <p>Lets continue with <strong>TodoList component</strong></p>
+    <p>First we change teh component to export both the connected component and the original component.</p>
+    <div class="sample">
+       <xmp class="code">
+          ...
+          export var TodoList = React.createClass({
+         ...
+         export default connect(
+           (state) => {
+             return {
+               todos: state.todos
+             };
+           }
+         )(TodoList);
+      </xmp>
+    </div>
+    <p>in <strong>TodoList.test.jsx</strong> we need to import the connected component from TodoList.</p>
+
+    <div class="sample">
+       <xmp class="code">
+         // var TodoList = require('TodoList');
+         import ConnectedTodoList , {TodoList} from 'TodoList';
+      </xmp>
+    </div>
+
+    <p>Ad we change the way we export the TodoList component
+      we also need to modify TodoApp component (and TodoApp test) to import TodoList component properly.</p>
+
+    <div class="sample">
+       <xmp class="code">
+         import TodoList from 'TodoList';
+      </xmp>
+    </div>
+
+    <p>With this change only one test is failing in TodoList.test.jsx, lets fix it:</p>
+
+    <div class="sample">
+       <xmp class="code">
+         ...
+         var {Provider} = require('react-redux');
+         import {configure} from 'configureStore';
+         import ConnectedTodoList , {TodoList} from 'TodoList';
+         import ConnectedTodo , {Todo} from 'Todo';
+         ...
+
+         it('should render one Todo component for each Todo item', ()=> {
+           var todos  = [{
+               id:1,
+               text:'Do something',
+               completed: false,
+               completedAt: undefined,
+               createdAt: 50
+             },
+             {
+               id:2,
+               text:'Check email',
+               completed: false,
+               completedAt: undefined,
+               createdAt: 50
+             }
+           ];
+
+           var store = configure({
+             todos
+           });
+
+           var provider  = TestUtils.renderIntoDocument(
+             <Provider store={store}>
+               <ConnectedTodoList/>
+             </Provider>
+           );
+
+           var todoList = TestUtils.scryRenderedComponentsWithType(provider, ConnectedTodoList)[0];
+
+           var todosComponents = TestUtils.scryRenderedComponentsWithType(todoList,ConnectedTodo);
+
+           expect(todosComponents.length).toBe(todos.length);
+         });
+
+       </xmp>
+    </div>
+
+    <p>in the <strong>configureStore.jsx</strong> we needed to add an <strong>initialState</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         ...
+         export var configure = (initialState = {}) => {
+         ...
+         var store = redux.createStore(reducer , initialState, redux.compose(
+           window.devToolsExtension ?  window.devToolsExtension() : f => f
+         ));
+
+      </xmp>
+    </div>
+  </section>
+
+  <section>
+    <a name="refactoring-addtodo"></a>
+    <h2>Refactoring AddTodo</h2>
+
+    <p>We want now to be able to add todos with redux.</p>
+    <p>We prepare <strong>AddTodo component</strong> to export original and connected components as
+      we did above with other components.And we change <strong>onSubmit</strong> method.</p>
+    <div class="sample">
+       <xmp class="code">
+          ...
+          onSubmit: function(e) {
+            e.preventDefault();
+            var {dispatch} = this.props;
+            var {onAddTodo} = this.props;
+            var todoText = this.refs.newTodo.value;
+            if(todoText.length > 0) {
+              this.refs.newTodo.value = '';
+              dispatch(actions.addTodo(todoText));
+            } else {
+              this.refs.newTodo.focus();
+            }
+          },
+          ...
+      </xmp>
+    </div>
+    <p>We modify test in <strong>AddTodo.test.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         var ReactDOM = require('react-dom');
+         var expect = require('expect');
+         var $ = require('jQuery');
+         var TestUtils = require('react-addons-test-utils');
+
+         var {AddTodo} = require('AddTodo');
+
+         describe('AddTodo' , () => {
+           it('it should exist', () => {
+             expect(AddTodo).toExist();
+           });
+
+           it('should dispatch ADD_TODO when valid todo text', () => {
+             var action = {
+               type: 'ADD_TODO',
+               text: todoText
+             };
+             var spy = expect.createSpy();
+             var addTodo = TestUtils.renderIntoDocument(<AddTodo dispatch={spy}/>);
+
+             var $el = $(ReactDOM.findDOMNode(addTodo));
+             addTodo.refs.newTodo.value = "El tio trompeta";
+
+             TestUtils.Simulate.submit($el.find('form')[0]);
+
+             expect(spy).toHaveBeenCalledWith(action);
+           });
+           it('should not dispatch ADD_TODO on invalid todo text', () => {
+             var spy = expect.createSpy();
+             var addTodo = TestUtils.renderIntoDocument(<AddTodo dispatch={spy}/>);
+
+             var $el = $(ReactDOM.findDOMNode(addTodo));
+             addTodo.refs.newTodo.value = "";
+
+             TestUtils.Simulate.submit($el.find('form')[0]);
+
+             expect(spy).toNotHaveBeenCalled();
+           });
+         });
+
+      </xmp>
+    </div>
+
+    <p>we also modify the reference to AddTodo component from TodoApp component.</p>
+
+    <div class="sample">
+       <xmp class="code">
+         import AddTodo from ('AddTodo');
+      </xmp>
+    </div>
+
+    <p>Now we can test the app to assure all is working properly.</p>
+  </section>
+
+
+  <section>
+    <a name="refactoring-todosearch"></a>
+    <h2>Refactoring TodoSearch</h2>
+
+    <p><strong>TodoSearch.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         var {connect} = require('react-redux');
+         var actions = require('actions');
+
+         export var TodoSearch = React.createClass({
+           render: function() {
+
+             var {dispatch , showCompleted , searchText} = this.props;
+             return(
+               <div className="container__header">
+                 <div>
+                     <input type="search" placeholder="Search todos" ref="searchText" value={searchText} onChange={()=> {
+                         var searchText = this.refs.searchText.value;
+                         dispatch(actions.setSearchText(searchText));
+                       }}/>
+                 </div>
+                 <div>
+                   <label>
+                     <input type="checkbox" ref="showCompleted" checked={showCompleted} onChange={ () => {
+                       dispatch(actions.toggleShowCompleted());
+                       }} />
+                       Show completed TODOs
+                   </label>
+                 </div>
+               </div>
+             );
+           }
+         });
+         export default connect(
+           (state) => {
+             return {
+               showCompleted : state.showCompleted,
+               searchText: state.searchText
+             }
+           }
+         )(TodoSearch);
+      </xmp>
+    </div>
+
+    <p><strong>TodoSearch.test.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         var ReactDOM = require('react-dom');
+         var expect = require('expect');
+         var $ = require('jQuery');
+         var TestUtils = require('react-addons-test-utils');
+
+         // var TodoSearch = require('TodoSearch');
+         import {TodoSearch} from 'TodoSearch';
+
+         describe('TodoSearch' , () => {
+           it('it should exist', () => {
+             expect(TodoSearch).toExist();
+           });
+
+           it('should dispatch SET_SEARCH_TEXT on input change', ()=> {
+             var searchText='Dog';
+             var action = {
+               type:'SET_SEARCH_TEXT',
+               searchText
+             };
+             var spy = expect.createSpy();
+             var todoSearch = TestUtils.renderIntoDocument(<TodoSearch dispatch={spy}/>);
+
+             todoSearch.refs.searchText.value = searchText;
+             TestUtils.Simulate.change(todoSearch.refs.searchText);
+
+             expect(spy).toHaveBeenCalledWith(action);
+
+           });
+           it('should dispatch TOGGLE_SHOW_COMPLETED when checkbox checked', ()=> {
+             var action = {
+               type:'TOGGLE_SHOW_COMPLETED'
+             };
+             var spy = expect.createSpy();
+             var todoSearch = TestUtils.renderIntoDocument(<TodoSearch dispatch={spy}/>);
+
+             todoSearch.refs.showCompleted.checked = true;
+             TestUtils.Simulate.change(todoSearch.refs.showCompleted);
+
+             expect(spy).toHaveBeenCalledWith(action);
+
+           });
+         });
+      </xmp>
+    </div>
+
+    <p><strong>TodoApp.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         import TodoSearch from 'TodoSearch';
+     </xmp>
+   </div>
+
+    <p><strong>TodoList.jsx</strong></p>
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         import Todo from 'Todo';
+         var {connect} = require('react-redux');
+         var TodoAPI = require('TodoAPI');
+
+         export var TodoList = React.createClass({
+
+           render: function() {
+             var {todos, showCompleted , searchText} = this.props;
+
+             var renderTodos = () => {
+               if(todos.length > 0) {
+                 return TodoAPI.filterTodos(todos, showCompleted , searchText).map((todo)=> {
+                   return (
+                     <Todo key={todo.id} {...todo}/>
+                   );
+                 });
+               } else {
+                 return (
+                   <p className="container__message">Nothing To Do</p>
+                 )
+               }
+             };
+
+             return (
+               <div>
+                 {renderTodos()}
+               </div>
+             );
+           }
+         });
+
+         export default connect(
+           (state) => {
+             return state;
+           }
+         )(TodoList);
+     </xmp>
+   </div>
+  </section>
+
+  <section>
+    <a name="redux-localstorage"></a>
+    <h2>Setting up local storage with Redux</h2>
+
+    <p>As we can remember the methods that interact with localStorage were in TodoApp component.</p>
+    <p>There are two methods: <strong>componentDidUpdate</strong> and <strong>getInitialState</strong> that
+      are not longer needed.Now <strong>redux store</strong>is on charge.</p>
+
+    <p>we can also remove the handler method because now action and reducers replace them</p>
+
+    <p>After we clean a little bit more in <strong>TodoApp.jsx</strong> we have this:</p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         import TodoList from 'TodoList';
+         import AddTodo from 'AddTodo';
+         import TodoSearch from 'TodoSearch';
+         var uuid = require('node-uuid');
+         var TodoAPI = require('TodoAPI');
+         var moment = require('moment');
+
+         export var TodoApp = React.createClass({
+           render: function() {
+             return (
+               <div>
+                 <h1 className="page-title">Todo App</h1>
+                 <div className="row">
+                   <div className="column small-centered small-11 medium-6 large-5">
+                     <div className="container">
+                       <TodoSearch/>
+                       <TodoList/>
+                       <AddTodo/>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             );
+           }
+
+         });
+
+         module.exports = TodoApp;
+     </xmp>
+   </div>
+
+   <p>We create a new action <strong>ADD_TODOS</strong> and its action generator associated.</p>
+
+   <p>and in <strong>TodoApp.jsx</strong> we make setTodos in subscribe redux method and set initial todos:</p>
+
+   <div class="sample">
+      <xmp class="code">
+        ...
+        store.subscribe(() => {
+          var state = store.getState();
+          console.log('New state', state);
+
+          TodoAPI.setTodos(state.todos);
+        });
+
+        var initialTodos = TodoAPI.getTodos();
+        store.dispatch(actions.addTodos(initialTodos));
+        ...
+    </xmp>
+  </div>
+
+  <p>NOTE: make sure to make a remove of old todos in the localStorage of your browser , as you can see unexpected behaviour.</p>
+  <p>And this is all , this is fantastic! :P</p>
+
+
+
+
+  </section>
+
+
+  <section>
+    <hr>
+    <a href="https://github.com/jescacena/reactjs-redux-todoapp" target="_blank">Reactjs-redux-todoapp project in github</a>
+    <br>
+    <br>
+    <a href="http://boiling-refuge-36775.herokuapp.com/">http://boiling-refuge-36775.herokuapp.com/</a>
+    <hr>
+  </section>
+
+
+
+    </main>
+
+  </body>
+</html>
