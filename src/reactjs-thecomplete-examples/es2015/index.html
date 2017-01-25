@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>ReactJS: EcmaScript 2015</title>
+    <title>EcmaScript 2015</title>
 
     <style>
     @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
@@ -18,7 +18,7 @@
     <header>
       <img src="../img/logo-reactjs.png" width="200">
 
-      <h1>ReactJS: EcmaScript 2015</h1>
+      <h1>EcmaScript 2015</h1>
     </header>
 
     <main>
@@ -38,6 +38,9 @@
           <li><a href="#rest-parameters">Rest parameters</a></li>
           <li><a href="#name-parameters">Named parameters</a></li>
           <li><a href="#object-literal">Object Literal Property Value Shorthand</a></li>
+          <li><a href="#template-literals">Template literals</a></li>
+          <li><a href="#destructuring">Destructuring</a></li>
+          <li><a href="#classes">Classes</a></li>
         </ul>
       </section>
 
@@ -576,6 +579,206 @@ An example of using var:</p>
                  });
                </xmp>
             </div>
+      </section>
+
+
+      <section>
+        <a name="template-literals"></a>
+        <h2>Template literals</h2>
+        <p>Using Template Literals, we can now construct strings that have
+          special characters in them without needing to escape them explicitly.</p>
+          <div class="sample">
+             <xmp class="code">
+               var text = "This string contains \"double quotes\" which are escaped.";
+               let text = `This string contains "double quotes" which don't need to be escaped anymore.`;
+             </xmp>
+          </div>
+          <p>Template Literals also support <strong>interpolation</strong>, which makes the task of concatenating strings and values:</p>
+          <div class="sample">
+             <xmp class="code">
+               var name = 'Tiger';
+               var age = 13;
+
+               console.log('My cat is named ' + name + ' and is ' + age + ' years old.');
+             </xmp>
+          </div>
+          <p>Much simpler:</p>
+          <div class="sample">
+             <xmp class="code">
+               const name = 'Tiger';
+               const age = 13;
+
+               console.log(`My cat is named ${name} and is ${age} years old.`);
+             </xmp>
+          </div>
+
+          <p>In ES5, we handled new lines as follows:</p>
+          <div class="sample">
+             <xmp class="code">
+               var text = (
+                   'cat\n' +
+                   'dog\n' +
+                   'nickelodeon'
+               );
+             </xmp>
+          </div>
+          <p>or:</p>
+          <div class="sample">
+             <xmp class="code">
+               var text = [
+                   'cat',
+                   'dog',
+                   'nickelodeon'
+               ].join('\n');
+             </xmp>
+          </div>
+
+          <p>Template Literals will <strong>preserve new lines</strong> for us without having to explicitly place them in:</p>
+          <div class="sample">
+             <xmp class="code">
+               let text = ( `cat
+               dog
+               nickelodeon`
+               );
+             </xmp>
+          </div>
+
+          <p>Template Literals can <strong>accept expressions</strong>, as well:</p>
+          <div class="sample">
+             <xmp class="code">
+               let today = new Date();
+               let text = `The time and date is ${today.toLocaleString()}`;
+             </xmp>
+          </div>
+
+      </section>
+
+      <section>
+        <a name="destructuring"></a>
+        <h2>Destructuring</h2>
+
+        <p>Destructuring allows us to extract values from arrays and objects (even deeply nested)
+          and store them in variables with a more convenient syntax.</p>
+
+        <p><strong>Destructuring Arrays</strong></p>
+
+        <div class="sample">
+           <xmp class="code">
+             var arr = [1, 2, 3, 4];
+             var a = arr[0];
+             var b = arr[1];
+             var c = arr[2];
+             var d = arr[3];
+             let [a, b, c, d] = [1, 2, 3, 4];
+
+             console.log(a); // 1
+             console.log(b); // 2
+           </xmp>
+        </div>
+
+        <p><strong>Destructuring Objects</strong></p>
+
+        <div class="sample">
+           <xmp class="code">
+             var luke = { occupation: 'jedi', father: 'anakin' };
+             var occupation = luke.occupation; // 'jedi'
+             var father = luke.father; // 'anakin'
+             let luke = { occupation: 'jedi', father: 'anakin' };
+             let {occupation, father} = luke;
+
+             console.log(occupation); // 'jedi'
+             console.log(father); // 'anakin'
+           </xmp>
+        </div>
+
+      </section>
+
+
+      <section>
+        <a name="classes"></a>
+        <h2>Classes</h2>
+
+        <p>Prior to ES6, we implemented Classes by creating a constructor function and adding properties
+          by extending the prototype:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function Person(name, age, gender) {
+                 this.name   = name;
+                 this.age    = age;
+                 this.gender = gender;
+             }
+
+             Person.prototype.incrementAge = function () {
+                 return this.age += 1;
+             };
+           </xmp>
+        </div>
+
+        <p>And created extended classes by the following:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             function Personal(name, age, gender, occupation, hobby) {
+                 Person.call(this, name, age, gender);
+                 this.occupation = occupation;
+                 this.hobby = hobby;
+             }
+
+             Personal.prototype = Object.create(Person.prototype);
+             Personal.prototype.constructor = Personal;
+             Personal.prototype.incrementAge = function () {
+                 Person.prototype.incrementAge.call(this);
+                 this.age += 20;
+                 console.log(this.age);
+             };
+           </xmp>
+        </div>
+
+        <p>ES6 provides much needed syntactic sugar for doing this under the hood. We can create Classes directly:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             class Person {
+                 constructor(name, age, gender) {
+                     this.name   = name;
+                     this.age    = age;
+                     this.gender = gender;
+                 }
+
+                 incrementAge() {
+                   this.age += 1;
+                 }
+             }
+           </xmp>
+        </div>
+
+        <p>And extend them using the extends keyword:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             class Personal extends Person {
+                 constructor(name, age, gender, occupation, hobby) {
+                     super(name, age, gender);
+                     this.occupation = occupation;
+                     this.hobby = hobby;
+                 }
+
+                 incrementAge() {
+                     super.incrementAge();
+                     this.age += 20;
+                     console.log(this.age);
+                 }
+             }
+           </xmp>
+        </div>
+
+        <p>Best Practice: While the syntax for creating classes in ES6 obscures how
+          implementation and prototypes work under the hood, it is a good feature
+          for beginners and allows us to write cleaner code.</p>
+
+
+
       </section>
 
     </main>

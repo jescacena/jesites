@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ES6 Classes and React.Component</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>ES6 Classes and React.Component</h1>
+    </header>
+
+    <main>
+        <section>
+          <h2>Table of contents</h2>
+          <ul>
+            <li><a href="#raw">Raw ES6 classes</a></li>
+            <li><a href="#extending">Extending and rendering</a></li>
+            <li><a href="#initial">Setting initial state</a></li>
+            <li><a href="#proptypes">Prop Types and Default prop values</a></li>
+            <li><a href="#autobinding">Goodbye autobinding</a></li>
+            <li><a href="#higher-order-functions">Higher Order Functions</a></li>
+            <li><a href="#higher-order-components">Higher Order Components</a></li>
+            <li><a href="#migrating-todoapp">Migrating Todo App to ES6 components</a></li>
+          </ul>
+        </section>
+
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/reactjs-es6Classes" target="_blank">React Components using ES6 classes</a>
+        <hr>
+        </section>
+
+
+        <section>
+          <a name="raw"></a>
+          <h2>Raw ES6 classes</h2>
+
+          <p>First: Be sure you have node v6 or superior installed</p>
+
+          <div class="sample">
+             <xmp class="code">
+                node playground/classes.js
+              </xmp>
+          </div>
+
+          <p><strong>playground/classes.js</strong></p>
+
+          <div class="sample">
+             <xmp class="code">
+               class Person {
+                 constructor (name = 'Anonymous', age = 0) {
+                   this.name = name;
+                   this.age = age;
+                 }
+                 getGreeting () {
+                   return `Hi! I'm ${this.name}.`;
+                 }
+                 getDescription () {
+                   return `${this.name} is ${this.age} year(s) old.`;
+                 }
+                 toString () {
+                   return JSON.stringify(this);
+                 }
+               }
+
+               var me = new Person('Andrew', 25);
+               console.log(me.getDescription());
+
+               var anonymous = new Person();
+               console.log(anonymous.getDescription());
+              </xmp>
+          </div>
+
+          <p>Lets create an extended class:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               class Child extends Person {
+                 constructor (name, age, like) {
+                   super(name, age);
+                   this.like = like;
+                 }
+                 getGreeting () {
+                   return `Hiiiiii! My name is ${this.name} and I like ${this.like}.`;
+                 }
+               }
+
+               // Baby getGreeting Wahhhhhhh
+               class Baby extends Person {
+                 getGreeting () {
+                   return `Wahhhhhh!`;
+                 }
+               }
+
+               var me = new Baby('Andrew', 25);
+               console.log(me.getGreeting());
+
+               var anonymous = new Baby('Mike', 4);
+               console.log(anonymous.getGreeting());
+              </xmp>
+          </div>
+
+
+        </section>
+
+        <section>
+          <a name="extending"></a>
+          <h2>Extending and rendering</h2>
+          <p>We are going to make React components using ES6 classes. You can get the same things with both ways.</p>
+
+          <p><strong>app/components/Component1.jsx</strong> (normal React syntax) </p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               var ComponentOne = React.createClass({
+                 render: function () {
+                   return (
+                     <div>
+                       <h3>Component One Using React.createClass</h3>
+                     </div>
+                   );
+                 }
+               });
+
+               export default ComponentOne;
+
+              </xmp>
+          </div>
+          <p><strong>app/components/Component2.jsx</strong> (ES6 syntax) </p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               class ComponentTwo extends React.Component {
+                 render () {
+                   return (
+                     <div>
+                       <h3>Component Two Using React.Component</h3>
+                     </div>
+                   );
+                 }
+               }
+
+               export default ComponentTwo;
+
+
+              </xmp>
+          </div>
+
+          <p><strong>app.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+               import ComponentOne from './components/ComponentOne';
+               import ComponentTwo from './components/ComponentTwo';
+               ...
+               ReactDOM.render(
+                 <div>
+                   <ComponentOne/>
+                   <ComponentTwo/>
+                 </div>,
+                 document.getElementById('app')
+               );
+
+              </xmp>
+          </div>
+
+        </section>
+
+        <section>
+          <a name="initial"></a>
+          <h2>Setting initial state</h2>
+          <p><strong>Component 1</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               var ComponentOne = React.createClass({
+                 getInitialState: function () {
+                   return {
+                     count: 4
+                   };
+                 },
+                 render: function () {
+                   return (
+                     <div>
+                       <h3>Component One Using React.createClass</h3>
+                       <p>Current count: {this.state.count}</p>
+                     </div>
+                   );
+                 }
+               });
+
+               export default ComponentOne;
+
+              </xmp>
+          </div>
+          <p><strong>Component 2</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               class ComponentTwo extends React.Component {
+                 constructor (props) {
+                   super(props);
+                   this.state = {
+                     count: 9
+                   };
+                 }
+                 render () {
+                   return (
+                     <div>
+                       <h3>Component Two Using React.Component</h3>
+                       <p>Current count: {this.state.count}</p>
+                     </div>
+                   );
+                 }
+               }
+
+               export default ComponentTwo;
+
+              </xmp>
+          </div>
+        </section>
+
+        <section>
+          <a name="proptypes"></a>
+          <h2>Prop Types and Default prop values</h2>
+          <p><strong>Component 1</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               var ComponentOne = React.createClass({
+                 getInitialState: function () {
+                   return {
+                     count: this.props.count
+                   };
+                 },
+                 getDefaultProps: function () {
+                   return {
+                     count: 11
+                   };
+                 },
+                 propTypes: {
+                   count: React.PropTypes.number
+                 },
+                 render: function () {
+                   return (
+                     <div>
+                       <h3>Component One Using React.createClass</h3>
+                       <p>Current count: {this.state.count}</p>
+                     </div>
+                   );
+                 }
+               });
+
+               export default ComponentOne;
+              </xmp>
+          </div>
+          <p><strong>Component 2</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               class ComponentTwo extends React.Component {
+                 constructor (props) {
+                   super(props);
+                   this.state = {
+                     count: props.count
+                   };
+                 }
+                 render () {
+                   return (
+                     <div>
+                       <h3>Component Two Using React.Component</h3>
+                       <p>Current count: {this.state.count}</p>
+                     </div>
+                   );
+                 }
+               }
+
+               ComponentTwo.defaultProps = {
+                 count: 50
+               };
+
+               ComponentTwo.propTypes = {
+                 count: React.PropTypes.number
+               };
+
+               export default ComponentTwo;
+              </xmp>
+            </div>
+
+        </section>
+
+        <section>
+          <a name="autobinding"></a>
+          <h2>Goodbye autobinding</h2>
+
+          <p>This is about how to handle 'this' on then event handlers. </p>
+
+          <p><strong>Component 1</strong></p>
+
+          <div class="sample">
+
+             <xmp class="code">
+               import React from 'react';
+
+               var ComponentOne = React.createClass({
+                 getInitialState: function () {
+                   return {
+                     count: this.props.count
+                   };
+                 },
+                 getDefaultProps: function () {
+                   return {
+                     count: 11
+                   };
+                 },
+                 propTypes: {
+                   count: React.PropTypes.number
+                 },
+                 onClick: function () {
+                   this.setState({
+                     count: this.state.count + 1
+                   });
+                 },
+                 render: function () {
+                   return (
+                     <div>
+                       <h3>Component One Using React.createClass</h3>
+                       <p>Current count: {this.state.count}</p>
+                       <button className="button" onClick={this.onClick}>Button One</button>
+                     </div>
+                   );
+                 }
+               });
+
+               export default ComponentOne;
+
+              </xmp>
+          </div>
+
+          <p>In ES6 classes you need to tweak a little bit.
+            You can use <strong>bind</strong> in the constructor or code directly in the JSX block.</p>
+          <p><strong>Component 2</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               class ComponentTwo extends React.Component {
+                 constructor (props) {
+                   super(props);
+                   this.state = {
+                     count: props.count
+                   };
+                   // This is another way to resolve it
+                   // this.onClick = this.onClick.bind(this);
+                 }
+                 // onClick () {
+                 //   this.setState({
+                 //     count: this.state.count + 1
+                 //   });
+                 // }
+                 render () {
+                   return (
+                     <div>
+                       <h3>Component Two Using React.Component</h3>
+                       <p>Current count: {this.state.count}</p>
+                       <button className="button" onClick={() => {
+                         this.setState({
+                           count: this.state.count + 1
+                         });
+                       }}>Button Two</button>
+                     </div>
+                   );
+                 }
+               }
+
+               ComponentTwo.defaultProps = {
+                 count: 50
+               };
+
+               ComponentTwo.propTypes = {
+                 count: React.PropTypes.number
+               };
+
+               export default ComponentTwo;
+
+              </xmp>
+            </div>
+
+        </section>
+
+        <section>
+          <a name="higher-order-functions"></a>
+          <h2>Higher Order Functions</h2>
+          <p>They are functions which get function as parameters and returns functions. Usually to extend some feature of the functions.</p>
+          <div class="sample">
+             <xmp class="code">
+               // function one (name, location) {
+               //   console.log(name, location);
+               // }
+               //
+               // function two () {
+               //   console.log('Args', arguments);
+               //   one.apply(undefined, arguments);
+               // }
+               //
+               // two('Andrew', 'Philadelphia');
+
+               var add = (a, b) => a + b;
+               var square = (a) => a * a;
+
+               var callAndLog = (func) => {
+                 return function () {
+                   var res = func.apply(undefined, arguments);
+                   console.log('Result is ' + res);
+                   return res;
+                 }
+               };
+
+               // console.log(add(99, 1));
+               //
+               // var addAndLog = callAndLog(add);
+               // console.log(addAndLog(44, -3));
+
+               var squareAndLog = callAndLog(square);
+               squareAndLog(3);
+
+              </xmp>
+          </div>
+        </section>
+
+        <section>
+          <a name="higher-order-components"></a>
+          <h2>Higher Order Components</h2>
+          <p>They are functions which get components as parameters and returns components.
+            Usually to customize some feature of the components.</p>
+
+            <p>As an example we are suppossing we are creating admin components in a different way depending if the user is Admin or not.</p>
+
+          <p><strong>Component2.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               // var isAdmin = true;
+               // var adminComponent = (Component) => {
+               //   return class Admin extends React.Component {
+               //     render () {
+               //       if (isAdmin) {
+               //         return (
+               //           <div className="callout secondary">
+               //             <p className="alert label">Private admin information</p>
+               //             <Component {...this.props}/>
+               //           </div>
+               //         )
+               //       } else {
+               //           return null
+               //       }
+               //     }
+               //   };
+               // };
+
+               var isAdmin = true;
+               var adminComponent = (Component) => {
+                 return class Admin extends Component {
+                   componentDidUpdate () {
+                     console.log('Admin component did update');
+
+                     if (super.componentDidUpdate) {
+                       super.componentDidUpdate();
+                     }
+                   }
+                   render () {
+                     if (isAdmin) {
+                       return (
+                         <div className="callout secondary">
+                           <p className="alert label">Private admin information</p>
+                           {super.render()}
+                         </div>
+                       )
+                     } else {
+                         return null
+                     }
+                   }
+                 };
+               };
+
+               class ComponentTwo extends React.Component {
+                 constructor (props) {
+                   super(props);
+                   this.state = {
+                     count: props.count
+                   };
+                   // this.onClick = this.onClick.bind(this);
+                 }
+                 // onClick () {
+                 //   this.setState({
+                 //     count: this.state.count + 1
+                 //   });
+                 // }
+                 render () {
+                   return (
+                     <div>
+                       <h3>Component Two Using React.Component</h3>
+                       <p>Current count: {this.state.count}</p>
+                       <button className="button" onClick={() => {
+                         this.setState({
+                           count: this.state.count + 1
+                         });
+                       }}>Button Two</button>
+                     </div>
+                   );
+                 }
+               }
+
+               ComponentTwo.defaultProps = {
+                 count: 50
+               };
+
+               ComponentTwo.propTypes = {
+                 count: React.PropTypes.number
+               };
+
+               export default adminComponent(ComponentTwo);
+
+              </xmp>
+          </div>
+        </section>
+
+
+        <section>
+          <a name="migrating-todoapp"></a>
+          <h2>Migrating Todo App to ES6 components</h2>
+
+          <p>First we create a project copying the last version of TodoApp.
+          <br>
+          NOTE: If you checkout the project from Github , don't forget to include <strong>config folder</strong>
+          containing environment data.</p>
+
+          <p><strong>AddTodo.jsx</strong> becomes in:</p>
+          <div class="sample">
+             <xmp class="code">
+
+                var React = require('react');
+                var {connect} = require('react-redux');
+                var actions = require('actions');
+
+                export class AddTodo extends React.Component {
+                  onSubmit (e) {
+                    e.preventDefault();
+                    var {dispatch} = this.props;
+                    var {onAddTodo} = this.props;
+                    var todoText = this.refs.newTodo.value;
+                    if(todoText.length > 0) {
+                      this.refs.newTodo.value = '';
+                      dispatch(actions.startAddTodo(todoText));
+                    } else {
+                      this.refs.newTodo.focus();
+                    }
+                  }
+
+                  render () {
+                    return (
+                      <div className="container__footer">
+                        <form onSubmit={this.onSubmit.bind(this)}>
+                          <input type="text" ref="newTodo" placeholder="What do you need to do?"/>
+                          <button type="submit" className="button expanded">Add</button>
+                        </form>
+                      </div>
+                    );
+                  }
+                };
+
+                export default connect()(AddTodo);
+
+              </xmp>
+          </div>
+
+          <p>Note changes:
+          <ul>
+            <li>Create class turns into extends REact component</li>
+            <li>bind(this) to get autobinding in the click handler</li>
+            <li>ES6 function definition , remove commas between function definitions</li>
+          </ul></p>
+
+
+
+          <p><a href="https://github.com/jescacena/reactjs-todoapp-es6cl">TodoApp with ES6 classes in Github</a></p>
+        </section>
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/reactjs-es6Classes" target="_blank">React Components using ES6 classes</a>
+        <hr>
+        </section>
+
+    </main>
+
+  </body>
+</html>

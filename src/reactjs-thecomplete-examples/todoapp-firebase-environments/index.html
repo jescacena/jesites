@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TodoApp (Environments)</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>TodoApp (Environments)</h1>
+    </header>
+
+    <main>
+        <section>
+          <h2>Table of contents</h2>
+          <ul>
+            <li><a href="#webpack-heroku">Webpack on heroku</a></li>
+            <li><a href="#environment">Environment variables & Separate Databases</a></li>
+            <li><a href="#heroku-environment">Heroku Environment variables</a></li>
+          </ul>
+        </section>
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        </section>
+
+        <section>
+          <a name="webpack-heroku"></a>
+          <h2>Webpack on heroku</h2>
+
+          <p>The <strong>bundle file</strong> is gigantic (5.85MB). As we run webpack we can see the size of the file.There are some
+            thing that aren't required for production , like sourcemaps and warnings.We are going to disable
+          that on production using webpack.</p>
+
+          <p>We are going to make <strong>webpack.config.js</strong> behaves differently depending of the environment.
+          There are some variables , <strong>environment variables</strong>,  that our servers are going to set and webpack will read to make different things.</p>
+
+          <p>Lets read in <strong>webpack.config.js</strong> the global environment <strong>NODE_ENV</strong>:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+              </xmp>
+          </div>
+
+          <p>Lets disable sourcemaps on production:</p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+               devtool: process.env.NODE_ENV === 'production' ? undefined : 'cheap-module-eval-source-map'
+              </xmp>
+          </div>
+
+          <p>We can simulate this is working , setting <strong>NODE_ENV</strong> on our system and then running webpack:</p>
+          <div class="sample">
+             <xmp class="code">
+               NODE_ENV=production webpack
+              </xmp>
+          </div>
+          <p>and we see like our file now is 2.26MB!</p>
+
+          <p>And using <strong>the p flag</strong> we can go for a smaller file.</p>
+          <div class="sample">
+             <xmp class="code">
+               NODE_ENV=production webpack -p
+              </xmp>
+          </div>
+
+          <p>and we see like our file now is 1.18MB!</p>
+
+          <p>Now we are going to get rid off the warnings coming up. So we will need to install a new plugin:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               new webpack.optimize.UglifyJsPlugin({
+                 compressor: {
+                   warnings: false
+                 }
+               })
+              </xmp>
+          </div>
+
+          <p>We are going now to prepare to run our webpack script in <strong>Heroku</strong>:</p>
+
+          <p><strong>package.json</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+               "scripts": {
+                 "test": "NODE_ENV=test karma start",
+                 "build": "webpack",
+                 "start": "npm run build && node server.js"
+               },
+
+               ...
+               dependencies {
+                  ...
+                  "babel-core": "^6.5.1",
+                  "babel-loader": "^6.2.2",
+                  "babel-preset-es2015": "^6.5.0",
+                  "babel-preset-react": "^6.5.0",
+                  "babel-preset-stage-0": "^6.5.0",
+                  "css-loader": "^0.23.1",
+                  "deep-freeze-strict": "^1.1.1",
+                  "expect": "^1.14.0",
+                  "foundation-sites": "6.2.0",
+                  "jquery": "^2.2.1",
+                  "moment": "^2.12.0",
+                  "node-sass": "^3.4.2",
+                  "node-uuid": "^1.4.7",
+                  "react-redux": "^4.4.1",
+                  "redux": "^3.3.1",
+                  "redux-mock-store": "^1.0.3",
+                  "redux-thunk": "^2.0.1",
+                  "sass-loader": "^3.1.2",
+                  "script-loader": "^0.6.1",
+                  "style-loader": "^0.13.0",
+                  "webpack": "^1.12.13"
+
+               }
+
+              </xmp>
+          </div>
+
+          <p>We create some new entries in <strong>scripts</strong> and move some dependencies from <strong>devDependencies</strong>
+          to <strong>dependencies</strong>.</p>
+
+          <p>The build script is not including the p flag because it delays much longer webpack running in Heroku.</p>
+
+          <p><strong>Lets ignore now in git our bundle.js</strong> file because is a file is being generated every time.</p>
+
+          <p><strong>.gitignore</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               public/bundle.js
+              </xmp>
+          </div>
+
+          <p>Another thing we need to do is <strong>authorize</strong> our application in <strong>firebase</strong>.
+          To do that we copy our app url in paste in firebase console (Auth tab --> sign in method --> Oauth redirect domains).</p>
+
+        </section>
+
+        <section>
+          <a name="environment"></a>
+          <h2>Environment variables & Separate Databases</h2>
+
+          <p>We are going to create new environments variables to choose different credential to firebase so we can
+          switch between development database and production database.There are two main reasons:</p>
+
+          <p>1.Right now every time we run tests we wipe out the whole database.</p>
+
+          <p>2.<strong>Security</strong>: It is not secure having the firebase credentials in the github repository.</p>
+
+          <p>We want to <strong>avoid make some hardcode</strong> in our code for this purpose.</p>
+          <p>Lets install a new package: <a class="library" target="_blank" href="https://github.com/grimen/node-env-file">node-env-file</a></p>
+          <div class="sample">
+             <xmp class="code">
+               npm install --save node-env-file@0.1.8
+              </xmp>
+          </div>
+          <p>With this new library we can store our environment variables in file and load and parse from nodejs.</p>
+
+          <p>First lets create a <strong>config</strong> folder at root level and lets create two new files:
+          <ul>
+            <li><strong>test.env</strong></li>
+            <li><strong>development.env</strong></li>
+          </ul>
+          </p>
+
+          <p>Before fill out values for these two files , lets remove our current application in the
+          firebase console ad create two brand new applications:
+          <ul>
+            <li><strong>Todo App Test</strong>: we will grab our credentials to store it in <strong>test.env</strong></li>
+            <li><strong>Todo App</strong>: we will grab our credentials to store it in <strong>development.env</strong></li>
+          </ul>
+          </p>
+
+          <p><strong>development.env</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               API_KEY=***
+               AUTH_DOMAIN=***
+               DATABASE_URL=***
+               STORAGE_BUCKET=***
+              </xmp>
+          </div>
+
+          <p><strong>webpack.config.js</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               var envFile = require('node-env-file');
+               process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+               try {
+                 envFile(path.join(__dirname, 'config/' + process.env.NODE_ENV + '.env'));
+               } catch(e) {
+
+               }
+              ...
+              new webpack.DefinePlugin({
+                'process.env' : {
+                  NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+                  API_KEY: JSON.stringify(process.env.API_KEY),
+                  AUTH_DOMAIN: JSON.stringify(process.env.AUTH_DOMAIN),
+                  DATABASE_URL: JSON.stringify(process.env.DATABASE_URL)
+                  STORAGE_BUCKET: JSON.stringify(process.env.STORAGE_BUCKET)
+                }
+              })
+
+              </xmp>
+          </div>
+
+          <p>Don't forget change <strong>database rules</strong> for both applications in the firebase console. </p>
+
+          <div class="sample">
+             <xmp class="code">
+                {
+                  "rules": {
+                    ".read": true,
+                    ".write": true
+                  }
+                }
+              </xmp>
+          </div>
+
+          <p>Now we can run our local app and play with Todos and then run <strong>npm test</strong> and not remove
+          the original database,  now they are separated.</p>
+
+          <p>Finally we can <strong>ignore the config folder</strong> in <strong>.gitignore</strong>.</p>
+          <div class="sample">
+             <xmp class="code">
+               node_modules/
+               public/bundle.js
+               config/
+              </xmp>
+          </div>
+
+        </section>
+
+
+        <section>
+          <a name="heroku-environment"></a>
+          <h2>Heroku Environment variables</h2>
+
+          <p>Now our app will fail in Heroku because it doesnt have the environment variables we just defined above.</p>
+
+          <p>With the comand:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               heroku config
+              </xmp>
+          </div>
+          <p>will give us the current environment variables Heroku has.</p>
+
+          <p>To create the new ones we run commands like this one:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               heroku config:set DATABASE_URL=https://todo-app-1967d.firebaseio.com
+              </xmp>
+          </div>
+
+          <p>and at the end run <strong>git push heroku master</strong> to apply these new environment variables to our app.</p>
+        </section>
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        </section>
+
+    </main>
+
+  </body>
+</html>

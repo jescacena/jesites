@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TodoApp + Firebase</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>TodoApp + Firebase</h1>
+    </header>
+
+    <main>
+        <section>
+          <h2>Table of contents</h2>
+          <ul>
+            <li><a href="#async-actions">Firebase: async actions</a></li>
+            <li><a href="#testing-async-actions">Testing Async Actions</a></li>
+            <li><a href="#saving-todo-updates">Saving Todo updates</a></li>
+            <li><a href="#testing-todo-updates">Testing Todo updates</a></li>
+            <li><a href="#fetch-todos">Fetch Todos from Firebase</a></li>
+            <li><a href="#testing-start">Testing startAddTodos</a></li>
+          </ul>
+        </section>
+
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        </section>
+
+
+        <section>
+          <a name="async-actions"></a>
+          <h2>Firebase: async actions</h2>
+
+          <p>We now want integrate firebase in the Todo App.</p>
+
+          <p><strong>What places in the code to include firebase?</strong> We could put it in each component.
+          But to maintain all the component as much generics as we can , we choose to create a unique place where
+         all the firebase calls are being saved.</p>
+
+         <p>We will make <strong>async actions</strong> to make firebase calls and then on callbacks they dispatch actions
+         to update the user view.</p>
+
+         <p>We need to install a new module <a class="library" href="https://github.com/gaearon/redux-thunk" target="_blank">redux-thunk</a>. It is a middleware. We need to configure it in the
+           <strong>configureStore.jsx:</strong>
+         </p>
+
+         <div class="sample">
+            <xmp class="code">
+              npm install --save redux-thunk@2.0.1
+             </xmp>
+         </div>
+         <div class="sample">
+            <xmp class="code">
+              import * as redux from 'redux';
+              import thunk from 'redux-thunk';
+              import {searchTextReducer, showCompletedReducer , todosReducer} from 'reducers';
+
+              export var configure = (initialState = {}) => {
+                var reducer = redux.combineReducers({
+                  searchText: searchTextReducer,
+                  showCompleted: showCompletedReducer,
+                  todos: todosReducer
+                });
+
+                var store = redux.createStore(reducer , initialState, redux.compose(
+                  redux.applyMiddleware(thunk),
+                  window.devToolsExtension ?  window.devToolsExtension() : f => f
+                ));
+
+                return store;
+
+              };
+             </xmp>
+         </div>
+
+         <p>Now all the action generators return objects, with <strong>redux-thunk</strong> we can code actions generators
+         that returns <strong>functions</strong> which will make async calls.</p>
+
+         <p>We add the file <strong>./app/firebase/index.js</strong> to add firebase to te project</p>
+
+         <div class="sample">
+            <xmp class="code">
+              import firebase from 'firebase';
+
+               try {
+                 // Initialize Firebase
+                 var config = {
+                   apiKey: "AIzaSyBnMzZrjRd3DF1LEoTWi-VnzMOkHKV8iYU",
+                   authDomain: "supermoco-todo-app.firebaseapp.com",
+                   databaseURL: "https://supermoco-todo-app.firebaseio.com",
+                   storageBucket: "supermoco-todo-app.appspot.com",
+                   messagingSenderId: "754354893490"
+                 };
+                 firebase.initializeApp(config);
+
+
+               } catch(e) {
+
+               }
+
+               export var firebaseRef = firebase.database().ref();
+
+               export default firebase;
+
+            </xmp>
+        </div>
+
+        <p>We use try/catch to avoid firebase be initialized multiple times.</p>
+        <p>And we export firebaseRef and we also export the complete firebase resources (in the last line).</p>
+
+        <p>In the <strong>webpack config</strong> file we create alias for app folder (a different way from previous ones).</p>
+
+        <div class="sample">
+           <xmp class="code">
+            ...
+            alias: {
+              app: 'app',
+              applicationStyles: 'app/styles/app.scss',
+              actions: 'app/actions/actions.jsx',
+              reducers: 'app/reducers/reducers.jsx',
+              configureStore: 'app/store/configureStore.jsx'
+            },
+            ...
+            </xmp>
+        </div>
+
+        <p>and then in <strong>actions.jsx</strong>:</p>
+        <div class="sample">
+           <xmp class="code">
+             import firebase, {firebaseRef} from 'app/firebase';
+            ...
+            </xmp>
+        </div>
+
+        <p>Now we change ADD_TODO action in actions and reducers to pass a complete todo:</p>
+        <p><strong>actions.jsx</strong>:</p>
+        <div class="sample">
+           <xmp class="code">
+             ...
+             export var addTodo = (todo) => {
+               return {
+                 type: 'ADD_TODO',
+                 todo
+               };
+             };
+
+             export var startAddTodo = (text) => {
+
+               return (dispatch ,getState) => {
+                 var todo =
+                 {
+                   text,
+                   completed: false,
+                   createdAt: moment().unix(),
+                   completedAt: undefined
+                 };
+
+                 var todoRef = firebaseRef.child('todos').push(todo);
+
+                 todoRef.then(()=> {
+                   dispatch(addTodo({
+                     ...todo,
+                     id:todoRef.key
+                   }));
+                 });
+               };
+
+             };
+             ...
+            </xmp>
+        </div>
+
+        <p><strong>Note</strong>: how we dont need generate an unique id with uuid library anymore because
+          we use <strong>unique id (todoRef.key) automatically generated by firebase</strong></p>
+
+        <p><strong>reducers.jsx</strong>:</p>
+        <div class="sample">
+           <xmp class="code">
+            case 'ADD_TODOS':
+              return [
+                ...state,
+                ...action.todos
+              ]
+              break;
+
+            </xmp>
+        </div>
+
+        <p><strong>AddTodo.jsx</strong>:</p>
+        <div class="sample">
+           <xmp class="code">
+             ...
+             dispatch(actions.startAddTodo(todoText));
+            ...
+            </xmp>
+        </div>
+
+        <p>Now we can test!</p>
+
+
+        </section>
+
+
+        <section>
+          <a name="testing-async-actions"></a>
+          <h2>Testing Async Actions</h2>
+
+          <p>First we fix old tests from previous changes. They are easy , maybe note in <strong>AddTodo.test.jsx</strong> we need
+          to replace assert for a regular action for a async action.</p>
+
+          <div class="sample">
+             <xmp class="code">
+               ...
+               import * as actions from 'actions';
+
+               ...
+               it('should dispatch ADD_TODO when valid todo text', () => {
+                 var todo = {
+                     id:1,
+                     text:'fffdd',
+                     completed: false,
+                     completedAt:undefined,
+                     createdAt:333
+                 };
+
+                 var action = actions.startAddTodo(todo);
+                 var spy = expect.createSpy();
+                 var addTodo = TestUtils.renderIntoDocument(<AddTodo dispatch={spy}/>);
+
+                 var $el = $(ReactDOM.findDOMNode(addTodo));
+                 addTodo.refs.newTodo.value = "El tio trompeta";
+
+                 TestUtils.Simulate.submit($el.find('form')[0]);
+
+                 expect(spy).toHaveBeenCalledWith(action);
+               });
+              ...
+              </xmp>
+          </div>
+
+          <p>NOTE: In the above code , we are not triggering any async call
+            because <strong>we are not dispatching 'startAddTodo' action yet</strong>.
+          We will do it next.</p>
+
+
+          <p>Testing an async action is going to be more complex than before.</p>
+
+          <p>We will need a mock store to check actions dispatched after firebase invocation. So we install a new npm package:
+          <strong><a class="library" href="https://www.npmjs.com/package/redux-mock-store">redux-mock-store</a></strong></p>
+
+          <div class="sample">
+             <xmp class="code">
+               ...
+               npm install --save-dev redux-mock-store@1.0.3
+              ...
+              </xmp>
+          </div>
+
+          <p><strong>actions.test.jsx</strong></p>
+
+          <div class="sample">
+             <xmp class="code">
+               import configureMockStore from 'redux-mock-store';
+               import thunk from 'redux-thunk';
+               ...
+               it('should create todo and dispatch ADD_TODO' , (done) => {
+                 const store = createMockStore({});
+                 const todoText = 'My Todo Item';
+                 var aux = store.dispatch(actions.startAddTodo(todoText));
+
+                 aux.then(() => {
+                   const actions2 = store.getActions();
+
+                   expect(actions2[0]).toInclude({
+                     type: 'ADD_TODO'
+                   });
+
+                   expect(actions2[0].todo).toInclude( {
+                     text:todoText
+                   });
+
+                   done();
+                 }).catch(done);
+               });
+               ...
+              </xmp>
+          </div>
+
+          <p> in <strong>actions.jsx</strong> we must not forget to return the promise in the action generator:</p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+
+                 return (dispatch ,getState) => {
+                   var todo =
+                   {
+                     text,
+                     completed: false,
+                     createdAt: moment().unix()
+                   };
+
+                   var todoRef = firebaseRef.child('todos').push(todo);
+
+                   return todoRef.then(()=> {
+                     dispatch(addTodo({
+                       ...todo,
+                       id:todoRef.key
+                     }));
+                   });
+                 };
+
+               };
+               ...
+              </xmp>
+          </div>
+        </section>
+
+        <section>
+          <a name="saving-todo-updates"></a>
+          <h2>Saving Todo updates</h2>
+          <p><strong>actions.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+
+               export var updateTodo = (id, updates) => {
+                 return {
+                   type: 'UPDATE_TODO',
+                   id,
+                   updates
+                 }
+               };
+
+               export var startToggleTodo = (id, completed) => {
+                 return (dispatch, getState) => {
+                   var todoRef = firebaseRef.child(`todos/${id}`);
+
+                   var updates = {
+                     completed,
+                     completedAt: completed ? moment().unix() : null
+                   };
+
+                   return todoRef.update(updates).then((done)=>{
+                     dispatch(updateTodo(id, updates));
+                     done();
+                   }).catch(done);
+                 };
+               };
+               ...
+              </xmp>
+          </div>
+
+          <p><strong>reducers.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+               case 'UPDATE_TODO':
+                 return state.map((todo)=> {
+                   if(todo.id === action.id){
+                     return {
+                       ...todo,
+                       ...action.updates
+                     }
+                   } else {
+                     return todo;
+                   }
+
+                 });
+                 break;
+               ...
+              </xmp>
+          </div>
+
+          <p>Now we want to make tests for data stored in firebase. We need to add testing data in the tests.</p>
+          <p>We will use two mocha methods: <strong>bforeEach</strong> and <strong>afterEach</strong> that executes before and
+          after each test.</p>
+
+          <div class="sample">
+             <xmp class="code">
+               ...
+               describe('Tests with firebase todos', () => {
+                 var testTodoRef;
+
+                 beforeEach((done) => {
+                   testTodoRef = firebaseRef.child('todos').push();
+                   testTodoRef.set({
+                     text:'Something to do',
+                     completed: false,
+                     createdAt: 434343
+                   }).then(() => done());
+                 });
+
+                 afterEach((done) => {
+                   testTodoRef.remove().then(() => done());
+                 });
+
+                 it('should toggle todo  and dispatch UPDATE_TODO action', (done)=> {
+                   const store = createMockStore({});
+                   const action = actions.startToggleTodo(testTodoRef.key , true);
+
+                   store.dispatch(action).then(()=> {
+                     const mockActions = store.getActions();
+
+                     expect(mockActions[0]).toInclude({
+                       type: 'UPDATE_TODO',
+                       id: testTodoRef.key
+                     });
+
+                     expect(mockActions[0].updates).toInclude({
+                       completed: true,
+                     });
+
+                     expect(mockActions[0].updates.completedAt).toExist();
+
+                     done();
+                   }, done);
+                 });
+               });
+
+               ...
+              </xmp>
+          </div>
+
+
+
+      </section>
+
+
+      <section>
+        <a name="fetch-todos"></a>
+        <h2>Fetch Todos from Firebase</h2>
+
+        <p>Originally we were fetching data from <strong>localStorage</strong>.</p>
+        <p>In <strong>app.jsx</strong> we replace code accessing localStorage:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             ...
+             // store.subscribe(() => {
+             //   var state = store.getState();
+             //   console.log('New state', state);
+             //   TodoAPI.setTodos(state.todos);
+             // });
+             //
+             // var initialTodos = TodoAPI.getTodos();
+             // store.dispatch(actions.addTodos(initialTodos));
+
+             store.dispatch(actions.startAddTodos());
+             ...
+            </xmp>
+        </div>
+
+        <p>First we remove from <strong>TodoAPI.jsx</strong> and <strong>TodoAPI.test.jsx</strong> all the references to the localStorage methods.</p>
+
+        <p>Then we implement <strong>startAddTodos</strong> action:</p>
+
+        <div class="sample">
+           <xmp class="code">
+             export var startAddTodos = () => {
+
+              return (dispatch ,getState) => {
+                var todosRef = firebaseRef.child('todos');
+                return todosRef.once('value').then((snapshot)=> {
+                  var todos = snapshot.val() || {};
+                    var parsedTodos = [];
+
+                  Object.keys(todos).forEach((todoId) => {
+                    parsedTodos.push({
+                      id:todoId,
+                      ...todos[todoId]
+                    });
+                  });
+
+                  dispatch(addTodos(parsedTodos));
+
+                });
+              };
+                // Another way to do the same
+                // return firebase.database().ref('/todos').once('value').then((snapshot) => {
+                //   var result = [];
+                //   var todosObject =snapshot.val();
+                //   var keys = Object.keys(todosObject);
+                //   keys.map((key)=>{
+                //     dispatch(addTodo({
+                //       id:key,
+                //       text:todosObject[key].text,
+                //       completed:todosObject[key].completed,
+                //       completedAt:todosObject[key].completedAt,
+                //       createdAt:todosObject[key].createdAt
+                //     }));
+                //   });
+                //
+                //   return result;
+                //
+                // } , (e) => {
+                //  console.log('Unable to fetch todos' , e);
+                // });
+              //};
+
+
+            };
+            ...
+           </xmp>
+       </div>
+      </section>
+
+      <section>
+        <a name="testing-start"></a>
+        <h2>Testing startAddTodos</h2>
+
+        <p> We now will wipe out the todos database for each test, so we modify <strong>beforeEach</strong>:</p>
+        <p><strong>actions.test.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             ...
+             beforeEach((done) => {
+               var todosRef = firebaseRef.child('todos');
+
+               todosRef.remove()
+               .then(()=> {
+                 testTodoRef = firebaseRef.child('todos').push();
+                 return testTodoRef.set({
+                           text:'Something to do',
+                           completed: false,
+                           createdAt: 434343
+                         });
+               })
+               .then(() => done())
+               .catch(done);
+             });
+             ...
+             it('should populate todos and dispatch ADD_TODOS', (done) => {
+               const store = createMockStore({});
+               const action = actions.startAddTodos();
+
+               store.dispatch(action).then(() => {
+                 const mockActions = store.getActions();
+
+                 expect(mockActions[0].type).toEqual('ADD_TODOS');
+                 expect(mockActions[0].todos.length).toEqual(1);
+                 expect(mockActions[0].todos[0].text).toEqual('Something to do');
+
+                 done();
+               }, done)
+             });
+             ...
+            </xmp>
+        </div>
+      </section>
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        </section>
+
+    </main>
+
+  </body>
+</html>

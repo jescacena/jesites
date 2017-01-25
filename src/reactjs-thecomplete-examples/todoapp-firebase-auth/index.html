@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TodoApp (Authentication with firebase)</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>TodoApp (Authentication with firebase)</h1>
+    </header>
+
+    <main>
+        <section>
+          <h2>Table of contents</h2>
+          <ul>
+            <li><a href="#login-logout">Adding Login page and Logout button</a></li>
+            <li><a href="#firebase-login-logout">Firebase Login and Logout</a></li>
+            <li><a href="#private-pages">Private pages and redirects</a></li>
+            <li><a href="#login-reducer">Login reducer and actions</a></li>
+            <li><a href="#firebase-security">Firebase security rules</a></li>
+            <li><a href="#testing-auth">Testing with Authentication</a></li>
+            <li><a href="#clearing">Clearing Todos on Logout</a></li>
+          </ul>
+        </section>
+
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        <a href="https://cryptic-thicket-80910.herokuapp.com/" target="_blank">Heroku app</a>
+        <hr>
+        </section>
+
+
+        <section>
+          <a name="login-logout"></a>
+          <h2>Adding Login page and Logout button</h2>
+
+          <p>Now we want to implement <strong>authentication using Oauth by firebase</strong>.</p>
+
+          <p>First we create <strong>Login</strong> component and modify <strong>app.jsx</strong> with Routing (react-router)
+           </p>
+          <div class="sample">
+             <xmp class="code">
+               import Login from 'Login';
+               ...
+
+               ReactDOM.render(
+                   <Provider store = {store}>
+                     <Router history={hashHistory}>
+                       <Route path="/">
+                         <Route path="todos" component={TodoApp}/>
+                         <IndexRoute component={Login}/>
+                       </Route>
+                     </Router>
+                   </Provider>
+                 ,
+                 document.getElementById('app')
+               );
+              </xmp>
+          </div>
+
+          <p>now we have two urls for our app:
+            <ul>
+              <li>localhost/# --> Login page</li>
+              <li>localhost/#/todos --> Todos page</li>
+            </ul>
+          </p>
+
+          <p>We style Login component with some Foundation classes.</p>
+
+          <p>In <strong>TodoApp</strong> we add a place to put Logout</p>
+
+        </section>
+
+        <section>
+          <a name="firebase-login-logout"></a>
+          <h2>Firebase Login and Logout</h2>
+
+          <p>It is time to create two new actions: one for Log in and one for Log out.</p>
+
+          <p>We're going to set up <strong>social login with Github</strong> usinf Firebase as a  provider.</p>
+
+          <p>First we go to our Github account and put our heroku url in 'Register a new OAuth application'. With this
+          we are registering our heroku app to enable Github authentication.</p>
+
+          <p>In the <strong>callback url</strong> we go to firebase console --> Authentication and copy callback url for
+          authentication with github. We click register the new oauth app in GitHub and then we copy the <strong>Client Id and Client Secret</strong>
+          and copy in the firebase console to get Github authentication enabled.</p>
+
+          <p>The in the <strong>firebase/index.js</strong> configuration we add the githubProvider:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               ...
+               export var githubProvider  = new firebase.auth.GithubAuthProvider();
+               ...
+
+              </xmp>
+          </div>
+
+          <p>Lets make now the new async actions:</p>
+          <p><strong>actions.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               ...
+               export var startLogin = () => {
+                 return (dispatch, getState) => {
+                   return firebase.auth().signInWithPopup(githubProvider).then((result)=> {
+                     console.log('Auth worked!' , result);
+                   }, (error)=>{
+                     console.log('Unable to auth' , error);
+                   });
+
+                 }
+               };
+               export var startLogout = () => {
+                 return (dispatch, getState) => {
+                   return firebase.auth().signOut().then(()=> {
+                     console.log('Logged out!');
+                   });
+                 }
+               };
+
+              </xmp>
+          </div>
+
+          <p>In the Login component , we need to change it to connect ot to Redux and be able to dispatch actions by the
+            the <strong>onClick</strong> tag in the CTA button.</p>
+          <p><strong>Login.jsx</strong></p>
+          <div class="sample">
+             <xmp class="code">
+               import React from 'react';
+
+               import * as Redux from 'react-redux';
+
+               import * as actions from 'actions';
+
+               export var Login = React.createClass({
+                 onLogin() {
+                   var {dispatch} = this.props;
+                   dispatch(actions.startLogin());
+                 },
+
+                 render() {
+                   return (
+                     <div>
+                       <h1 className="page-title">Todo App</h1>
+
+                       <div className="row">
+                         <div className="columns small-centered small-10 medium-6 large-4">
+                           <div className="callout callout-auth">
+                             <h3>Login</h3>
+                             <p>Login with Github account below</p>
+                             <button className="button" onClick={this.onLogin}>Login with Github</button>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   );
+                 }
+               });
+
+               export default Redux.connect()(Login);
+              </xmp>
+          </div>
+
+          <p>Now we can test if Github login is working!</p>
+
+          <p>To bind <strong>startLogout action</strong> we need to connect <strong>TodoApp</strong> to Redux as we did with the Login component.</p>
+
+          <p>And don't forget to modify <strong>app.jsx</strong> and test <strong>TodoApp.spec.js</strong> which are making references to TodoApp component.</p>
+
+        </section>
+
+        <section>
+          <a name="private-pages"></a>
+          <h2>Private pages and redirects</h2>
+
+          <p>When i log in i want to be redirected to the todos page and when i click logout i want to go to the login page.</p>
+
+          <p>Also i want user be redirected to login page if is not logged in to avoid hack the app putting the url of the todos in the browser.</p>
+
+          <p>To do that we implement a firebase method is executed every time Auth state change. So in <strong>app.jsx</strong>:</p>
+
+          <div class="sample">
+             <xmp class="code">
+              import firebase from 'app/firebase/';
+
+              firebase.auth().onAuthStateChanged((user) => {
+                if(user) {
+                  hashHistory.push("/todos");
+                } else {
+                  hashHistory.push("/");
+                }
+              });
+            </xmp>
+        </div>
+
+        <p>We can check it is working.</p>
+
+        <p>Now lets implement the secure functionality to avoid unauthorized access putting direct url to todos in the browser.
+        We are going to add some middleware to each Route.</p>
+
+        <p><strong>app.jsx</strong></p>
+        <div class="sample">
+           <xmp class="code">
+             var requireLogin = (nextState, replace , next) => {
+               if(!firebase.auth().currentUser) {
+                 replace('/');
+               }
+
+               next();
+             };
+
+             ...
+
+             <Route path="todos" component={TodoApp} onEnter={requireLogin}/>
+
+            </xmp>
+        </div>
+
+        <p>The middleware is <strong>requireLogin</strong> function , a react-router function. Then we apply on the <strong>onEnter</strong> attribute of the Route component.</p>
+
+        <p>Now we want to add another functionality : if i already logged in i want to be redirected to the todos page.Go and see the code in github.</p>
+
+        <p>Now we are going to do some clean up of <strong>app.jsx</strong>. Lets separate all middleware stuff to redirections in a separate file <strong>router/index.jsx</strong>.Go and see.</p>
+
+
+        </section>
+
+        <section>
+          <a name="login-reducer"></a>
+          <h2>Login reducer and actions</h2>
+
+          <p>In this section we want to save some information from the logged users in order to save
+            in the database separate todos for each user.</p>
+
+          <p>Each user only can see/update their todos.</p>
+
+          <p>First we will keep track of the <strong>uid</strong> property of each user in the Redux store (It is like session object for the user in the classic apps.).
+            So lets make LOGIN and LOGOUT actions and corresponding reducers. And the tests. Go and see.</p>
+
+            <p>And in <strong>app.jsx</strong></p>
+
+            <div class="sample">
+               <xmp class="code">
+                 ...
+                 firebase.auth().onAuthStateChanged((user) => {
+                   if(user) {
+                     store.dispatch(actions.login(user.uid));
+                     hashHistory.push("/todos");
+                   } else {
+                     hashHistory.push("/");
+                   }
+                 });
+                ...
+                </xmp>
+            </div>
+
+            <p>We can check <strong>auth</strong> is saving checking Redux in browser console.</p>
+
+
+        </section>
+
+        <section>
+          <a name="firebase-security"></a>
+          <h2>Firebase security rules</h2>
+
+          <p>Here we will make each user can only see their todos and not somebody else todos.</p>
+
+          <p>What we want to achieve is getting this data into firebase:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               {
+                 users: {
+                   someuid: {
+                     name: 'Chiquito',
+                     todos: {
+                       23232ff: {
+                         text: 'dsfsdfdsf  s ds fds fdsf'
+                       }
+                     }
+                   }
+                 }
+               }
+
+              </xmp>
+          </div>
+
+          <p>only user with uid=someuid can get access to the someuid data.</p>
+
+          <p>First we need to secure todos object for each user, so in database security rules in <strong>firebase console</strong>:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               {
+                 "rules": {
+                   "users": {
+                     "$user_id": {
+                       ".read" : "$user_id === auth.uid",
+                       ".write" : "$user_id === auth.uid"
+                     }
+                   }
+                 }
+               }
+              </xmp>
+          </div>
+
+          <p>Now , since the location of 'todos' object has changed, we need to tweak some changes in <strong>actions.jsx</strong> , in every action that reference todos in firebase. For example in startToggleTodo:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               var uid = getState().auth.uid;
+
+               var todoRef = firebaseRef.child(`users/${uid}/todos/${id}`);
+              </xmp>
+          </div>
+
+          <p>Note how we use ES6 templte strings to integrate variables unto the strings.</p>
+
+          <p>And in <strong>app.jsx</strong> we move the line of <strong>startTodos</strong> into the firebase auth observer:</p>
+
+          <div class="sample">
+             <xmp class="code">
+               firebase.auth().onAuthStateChanged((user) => {
+                 if(user) {
+                   store.dispatch(actions.login(user.uid));
+                   store.dispatch(actions.startAddTodos());
+                   hashHistory.push("/todos");
+                 } else {
+                   hashHistory.push("/");
+                 }
+               });
+             </xmp>
+          </div>
+
+          <p>Go and check it is working , but font forget before remove old database in the firebase console.</p>
+        </section>
+
+        <section>
+          <a name="testing-auth"></a>
+          <h2>Testing with Authentication</h2>
+
+          <p>Now some of our tests are failing because we move the 'todos' object location.</p>
+
+          <p>First we need to change a little bit our database rules in firebase to <strong>only authenticated users can access</strong> the database.</p>
+
+          <div class="sample">
+             <xmp class="code">
+              {
+               "rules": {
+                 "users": {
+                   ".read": "auth !== null",
+                   ".write": "auth !== null",
+                   "$user_id": {
+                     ".read" : "$user_id === auth.uid",
+                     ".write" : "$user_id === auth.uid"
+                   }
+                 }
+               }
+              }
+            </xmp>
+         </div>
+
+         <p>we put these rules in both apps: Todo App and Todo App Test.</p>
+
+         <p>For Todo App Test App we configure <strong>Anonymous authentication</strong>.</p>
+
+         <p>Lets fix actions.test.jsx. First we move all tests requiring uid to the describe block "Testing with firebase todos".
+         So we move tests with startAddTodo and startToggleTodo.</p>
+
+         <p>Then in beforeEach of describe "Testing with firebase todos":</p>
+
+         <div class="sample">
+            <xmp class="code">
+             var uid;
+             var todosRef;
+
+             beforeEach((done) => {
+
+               firebase.auth().signInAnonymously().then((user) => {
+                 uid = user.uid;
+                 todosRef = firebaseRef.child(`users/${uid}/todos`);
+                 return todosRef.remove();
+               }).then(()=> {
+                 testTodoRef = todosRef.push();
+                 return testTodoRef.set({
+                           text:'Something to do',
+                           completed: false,
+                           createdAt: 434343
+                         });
+               })
+               .then(() => done())
+               .catch(done);
+             });
+           </xmp>
+        </div>
+
+          <p>afterEach stay the same. But in each test now we create the mock store with the anonymous uid:</p>
+
+          <div class="sample">
+             <xmp class="code">
+              ...
+              const store = createMockStore({auth: {uid} });
+
+              ...
+            </xmp>
+         </div>
+
+         <p>and now tests are all green again!!.</p>
+
+        </section>
+
+        <section>
+          <a name="clearing"></a>
+          <h2>Clearing Todos on Logout</h2>
+
+          <p>We want to wipe out from Redux store on logout.Go and see.</p>
+        </section>
+
+
+        <section>
+        <hr>
+        <a href="https://github.com/jescacena/todoapp-firebase" target="_blank">TodoApp + Firebase project in github</a>
+        <hr>
+        <a href="https://cryptic-thicket-80910.herokuapp.com/" target="_blank">Heroku app</a>
+        <hr>
+        </section>
+
+    </main>
+
+  </body>
+</html>

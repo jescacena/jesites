@@ -52,6 +52,27 @@ main {
     text-decoration: none;
   }
 
+    main a.library {
+      display: inline-block;
+      background-color: yellow;
+      text-align: center;
+      border: 1px solid red;
+      padding: 0.3em;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-bottom:0.4em;
+    }
+    main a.software {
+      display: inline-block;
+      background-color: green;
+      text-align: center;
+      border: 1px solid orange;
+      padding: 0.3em;
+      border-radius: 10px;
+      font-weight: bold;
+      color:white
+    }
+
 section {
   margin-top: 1.5em; }
   section h2 {

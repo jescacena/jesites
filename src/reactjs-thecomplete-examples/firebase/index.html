@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Firebase</title>
+
+    <style>
+    @import 'https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400i,700,700i|Kalam:300';
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/main.css">
+
+  </head>
+  <body>
+
+    <header>
+      <img src="../img/logo-reactjs.png" width="200">
+
+      <h1>Firebase</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Table of contents</h2>
+        <ul>
+          <li><a href="#setup">Firebase setup</a></li>
+          <li><a href="#working-data">Firebase: working with data</a></li>
+        </ul>
+      </section>
+
+
+    <section>
+      <hr>
+      <a href="https://github.com/jescacena/firebase-learn" target="_blank">Firebase learn project in github</a>
+      <hr>
+    </section>
+
+  <section>
+    <a name="setup"></a>
+    <h2>Firebase setup</h2>
+
+    <p><a href="https://firebase.google.com/">Firebase</a> is a <strong>JSON store</strong> for your application</p>
+    <p>It is a NO-SQL database.</p>
+    <p>Lets <strong>create a new account</strong> in the firebase console in Google.</p>
+    <p>Create a <strong>new project</strong> in the dashboard.</p>
+
+    <p>Install this new npm package: <a href="https://firebase.google.com/" class="library" target="_blank">firebase</a></p>
+    <div class="sample">
+       <xmp class="code">
+         npm install --save firebase@3.0.2
+        </xmp>
+    </div>
+
+    <p>We will make some examples in the <strong>playground folder</strong>.</p>
+
+    <p><strong>./playground/firebase/index.js</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         import firebase from 'firebase';
+
+         // Initialize Firebase
+         var config = {
+           apiKey: "AIzaSyBnMzZrjRd3DF1LEoTWi-VnzMOkHKV8iYU",
+           authDomain: "supermoco-todo-app.firebaseapp.com",
+           databaseURL: "https://supermoco-todo-app.firebaseio.com",
+           storageBucket: "supermoco-todo-app.appspot.com",
+           messagingSenderId: "754354893490"
+         };
+         firebase.initializeApp(config);
+
+         firebase.database().ref().set({
+           appName: 'Todo App'
+         });
+        </xmp>
+    </div>
+
+    <p>In the Firebase console we configure free authentication by the moment , so in <strong>Rules</strong> tab:</p>
+    <div class="sample">
+       <xmp class="code">
+         {
+           "rules": {
+             ".read": true,
+             ".write": true
+           }
+         }
+       </xmp>
+    </div>
+
+
+    <p><strong>./app/app.jsx</strong></p>
+
+    <div class="sample">
+       <xmp class="code">
+         var React = require('react');
+         var ReactDOM = require('react-dom');
+         var {Route, Router, IndexRoute, hashHistory} = require('react-router');
+
+         // Load foundation
+         $(document).foundation();
+
+         import './../playground/firebase/index';
+
+         ReactDOM.render(
+           <h1>Firebase playground</h1>,
+           document.getElementById('app')
+         );
+        </xmp>
+    </div>
+
+    <p>after running webpack and node server , we can check teh Firebase console (Databases in the menu) and see the data was actually added.</p>
+
+  </section>
+
+
+  <section>
+    <a name="working-data"></a>
+    <h2>Firebase: working with data</h2>
+
+
+    <div class="sample">
+       <xmp class="code">
+         //Saving data
+         firebase.database().ref().set({
+           appName: 'Todo App',
+           isRunning: true,
+           user: {
+             name: 'Supermoco',
+             age:99
+           }
+         });
+
+         ...
+         var firebaseRef = firebase.database().ref();
+
+         firebaseRef.set({
+           app: {
+             name: 'Todo App',
+             version: '1.0.0'
+           },
+           isRunning: true,
+           user: {
+             name: 'Andrew',
+             age: 25
+           }
+         }).then(() => {
+           console.log('Set worked!');
+         }, (e) => {
+           console.log('Set failed');
+         })
+
+         // firebaseRef.set({
+         //   appName: 'Todo Application'
+         // });
+
+         firebaseRef.child('user').set({
+           name: 'Mike'
+         });
+
+         firebaseRef.child('app').set({
+           name: 'Todo App'
+         });
+
+         ...
+         //Updating data
+         firebaseRef.child('app').update({ name: 'Todo Application' });
+         firebaseRef.child('user').update({ name: 'Mike' });
+
+         ...
+         //Removing data
+         firebaseRef.update({
+           isRunning: null
+         });
+         firebaseRef.child('user/age').remove();
+
+         ...
+         //Fetching data
+         firebaseRef.once('value').then((snapshot) => {
+           console.log('Got entire database' , snapshot.val());
+         } , (e) => {
+           console.log('Unable to fetch value' , e);
+         });
+
+         ...
+
+         //Listening changes
+         firebaseRef.child('user').on('value', (snapshot) => {
+           console.log('User ref changed', snapshot.val());
+         });
+
+         firebaseRef.child('user').update({name: 'Mike'});
+
+         firebaseRef.child('app').update({name: 'Something Else!'});
+
+         ...
+
+         //Arrays
+         var todosRef = firebaseRef.child('todos');
+
+         todosRef.on('child_added', (snapshot) => {
+           console.log('New todo added', snapshot.key, snapshot.val());
+         });
+
+         todosRef.push({
+           text: 'Todo 1'
+         });
+
+         todosRef.push({
+           text: 'Todo 2'
+         });
+
+
+
+        </xmp>
+    </div>
+
+    <p><strong>Set method remove all old data</strong>, so be carefull in its use.</p>
+
+  </section>
+
+  <section>
+    <hr>
+    <a href="https://github.com/jescacena/firebase-learn" target="_blank">Firebase learn project in github</a>
+    <hr>
+  </section>
+
+
+
+    </main>
+
+  </body>
+</html>
