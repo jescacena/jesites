@@ -1,0 +1,4 @@
+ErrorDocument 404 http://jesidea.com/jesites/src/angular2-recipe-book/
+
+RewriteEngine On
+RewriteBase /

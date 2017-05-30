@@ -1,0 +1,12 @@
+{
+  "title": "Angular2 Recipe Book",
+  "description" : "Angular2 Udemy Course Project Example - Recipe book",
+  "tags": "angular",
+  "links": [
+    {
+      "url":"https://angular.io",
+      "label": "Angular Framework"
+      }
+  ],
+  "lastUpdateTimestamp":1366960436
+}
